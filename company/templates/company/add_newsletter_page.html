@@ -1,0 +1,42 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+
+<script src="{% static 'main/js/emailpopusubmit.js' %}"></script>
+<script src="{% static 'main/js/go.js' %}"></script>
+<script src="{% static 'main/js/Figures.js' %}"></script>
+<script src="{% static 'main/js/draganddrop.js' %}"></script>
+<script src="{% static 'main/js/company.js' %}"></script>
+
+<div class="page-wrapper">
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+        <form id="newsletter-form" action="{% url 'newsletter' list_id 'add' %}" class="user{{ list_id }}" method="post" onsubmit="save(event, '{{ list_id }}')">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-sm-9">
+                  <label for="newsletter_name{{ list_id }}">{% trans 'Newsletter Template name' %}:</label>
+                  <input type="text" id="newsletter_name{{ list_id }}" name="newsletter_name" class="form-control">
+              </div>
+              <div class="col-sm-3">
+                  <label for="newsletter_submit{{ list_id }}">&nbsp;</label>
+                  <input type="submit" id="newsletter_submit{{ list_id }}" data-dismiss="modal" class="btn btn-primary btn-user btn-block" value="{% trans 'Save Template' %}">
+              </div>
+            </div>
+            {% include 'company/includes/draggable.html' %}
+            <input type="text" name="draganddropjson" id="draganddropjson" hidden="true" value="[]">
+            <input type="text" name="draganddropjson_for_data" id="draganddropjson_for_data" hidden="true" value="[]">
+        </form>
+
+        {% include 'company/includes/_modals/EmailModal.html' with list_id=list_id set_template_form=set_template_form %}
+        {% include 'company/includes/_modals/TelegramModal.html' with list_id=list_id set_template_form=set_template_form %}
+        {% include 'company/includes/_modals/DelayModal.html' with list_id=list_id %}
+        {% include 'company/includes/_modals/GoalModal.html' with list_id=list_id %}
+        {% include 'company/includes/_modals/TriggerModal.html' with list_id=list_id %}
+    </div>
+</div>
+
+{% include 'company/includes/newsletter_templates_warnings.html' %}
+
+{% endblock %}

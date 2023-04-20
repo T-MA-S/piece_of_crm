@@ -1,0 +1,67 @@
+{% load i18n %}
+{% load template_utils %}
+
+<div class="modal fade" id="add_generated_contact_to_list{{ index }}{{ by }}" tabindex="-1" role="dialog" aria-labelledby="addUserModalLongTitle_{{ index }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLongTitle_{{ index }}">{% trans 'Add client' %}</h5>
+                <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                <form class="user" method="post" id="add_user_from_search_form{{ index }}" data-index="{{ index }}" data-by="{{ by }}">
+                    {% csrf_token %}
+
+                    {% get_user_contats_lists request.user as contacts_lists %}
+                    <label for="id_user_lists{{ index }}{{ by }}">{% trans 'User Lists' %}: </label>
+                    <select id="id_user_lists{{ index }}{{ by }}" name="user_lists{{ index }}{{ by }}" class="form-control" style="width: 100%">
+                        {% for contacts_list in contacts_lists %}
+                            <option value="{{ contacts_list.pk }}">{{ contacts_list.list_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="firstname{{ index }}{{ by }}">{% trans 'First name' %}: </label>
+                    <input type="text" name="first_name{{ index }}{{ by }}" id="firstname{{ index }}{{ by }}" class="form-control form-control-user" value="{{ name }}" placeholder="{% trans 'First name' %}">
+
+                    <label for="surname{{ index }}{{ by }}">{% trans 'Surname' %}: </label>
+                    <input type="text" name="surname{{ index }}{{ by }}" id="surname{{ index }}{{ by }}" class="form-control form-control-user" value="{{ surname }}" placeholder="{% trans 'Surname' %}">
+
+                    <label for="middle_name{{ index }}{{ by }}">{% trans 'Middle Name' %}: </label>
+                    <input type="text" name="middle_name{{ index }}{{ by }}" id="middle_name{{ index }}{{ by }}" class="form-control form-control-user" value="{{ middle_name }}" placeholder="{% trans 'Middle Name' %}">
+
+                    <label for="email{{ index }}{{ by }}">{% trans 'Email' %}: </label>
+                    <input type="email" name="email{{ index }}{{ by }}" id="email{{ index }}{{ by }}" class="form-control form-control-user" value="{{ email }}" placeholder="{% trans 'Email' %}" required>
+
+                    <label for="id_phone_number{{ index }}{{ by }}">{% trans 'Phone Number' %}: </label>
+                    <input type="tel" name="phone_number{{ index }}{{ by }}" id="id_phone_number{{ index }}{{ by }}" class="form-control form-control-user" value="{{ phone_number }}" data-tel-input placeholder="{% trans 'Phone Number' %}" maxlength="18">
+
+                    <label for="position{{ index }}{{ by }}">{% trans 'Position' %}: </label>
+                    <input type="text" name="position{{ index }}{{ by }}" id="position{{ index }}{{ by }}" class="form-control form-control-user" value="{{ position }}" placeholder="{% trans 'Position' %}">
+
+                    <label for="id_company{{ index }}{{ by }}">{% trans 'Company name' %}: </label>
+                    <input type="text" name="company{{ index }}{{ by }}" id="id_company{{ index }}{{ by }}" class="basicAutoComplete form-control form-control-user" value="{{ company }}" placeholder="{% trans 'Company name' %}" data-url="/ru/company/company_name_autocomplete" onchange="company_field_changed(this.value)">
+
+                    <label for="id_site{{ index }}{{ by }}">{% trans 'Company website' %}: </label>
+                    <input type="text" name="site{{ index }}{{ by }}" id="id_site{{ index }}{{ by }}" class="form-control form-control-user" value="{{ domain }}" placeholder="{% trans 'Company website' %}">
+
+                    <label for="id_telegram_id{{ index }}{{ by }}">{% trans 'Telegram ID' %}: </label>
+                    <input class="form-control form-control-user" id="id_telegram_id{{ index }}{{ by }}" name="telegram_id{{ index }}{{ by }}" value="{{ telegram_id }}" type="text" placeholder="{% trans 'Telegram ID' %}">
+
+                    <div class="modal-footer">
+                        <input type="submit"
+                                class="btn btn-primary btn-user btn-block"
+                                value="{% trans 'Add Contact' %}">
+                        <input type="submit"
+                                data-dismiss="modal"
+                                class="btn btn-secondary btn-user btn-block"
+                                value="{% trans 'Cancel' %}">
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

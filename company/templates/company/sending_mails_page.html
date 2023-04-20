@@ -1,0 +1,63 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Templates{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid" id="sending_mails-list">
+        {% include 'company/includes/sendings/sending_mails_lists.html' with messages=messages telegram_bots_exists=telegram_bots_exists user_have_valid_using_smtp=user_have_valid_using_smtp sending_mails_lists=sending_mails_lists add_list_form=add_list_form list_ids=list_ids  %}
+    </div>
+
+
+    <div class="myAlert-bottom alert alert-warning">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Failed to generate any email.' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="success_refresh">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Data updated' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="start_sending_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Sendings successfully started' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="success_alert">
+        <strong>{% trans 'Success!' %}</strong> <span id="success_alert_message"></span>
+    </div>
+
+    <div class="myAlert-bottom alert alert-danger" id="error_alert">
+        <strong>{% trans 'Error!' %}</strong> <span id="error_alert_message"></span>
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="break_sendings_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Sendings successfully broke' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="break_sending_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Sending successfully broke' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="delete_sending_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Sending successfully deleted' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="sending_edit">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Change at least one field' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_sending_select_action">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Choose an action first' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_sending_select_sending">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Select at least one sending' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="bulk_sending_del_alert">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Selected sendings deleted successfully' %}
+    </div>
+
+{% endblock %}

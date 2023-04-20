@@ -1,0 +1,308 @@
+{% load static %}
+{% load i18n %}
+{% load tags %}
+
+<script src="{% static 'main/js/board.js' %}"></script>
+
+{% for status, contracts in data.items %}
+    <div class="col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 scrolling-wrapper-flexbox" id="status-block">
+        <div class="card">
+            <div class="card-header bg-gradient bg-{{ status.color }}">
+                <div class="row">
+                    <div class="col-11"><h6 class="{% if status.color != 'white' %}text-white{% endif %}">{% trans 'Contract status: ' %} {{ status.name }}</h6></div>
+
+                    {% if status.name_ru != 'Новая' and status.name_ru != 'Удалена' and member_role == 'OWN' or member_role == 'ADMIN' %}
+                        <div class="col-1">
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                    aria-labelledby="dropdownMenuLink">
+                                    <div class="dropdown-header">{% trans 'Select an action' %}</div>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#edit_status{{ status.pk }}">{% trans 'Edit' %}</a>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#delete_status{{ status.pk }}">{% trans 'Delete' %}</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="edit_status{{ status.pk }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">{% trans 'Edit status' %}</h5>
+                                        <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body text-dark">
+                                        <form action="{% url 'edit_status' status.board_id status.pk %}" id="edit_status_form{{ status.id }}" method="post">
+                                            {% csrf_token %}
+            
+                                            <label for="name">{% trans 'Name' %}: </label>
+                                            <input class="form-control" type="text" id="name" name="name" value="{{ status.name }}" required/>
+            
+                                            <label for="name">{% trans 'Color' %}: </label>
+                                            <select class="form-control" id="color" name="color" required>
+                                                {% for key, color in colors %}
+                                                    <option value="{{ key }}" {% if status.color == key %}selected{% endif %}>{{ color }}</option>
+                                                {% endfor %}
+                                            </select>
+            
+                                            <label for="name">{% trans 'Position in board' %}: </label>
+                                            <input class="form-control" type="number" min="2"
+                                                    max="{{ status_max_position|add:'-1' }}" id="position" name="position" value="{{ status.position }}"
+                                                    required/>
+            
+                                            <button class="btn btn-secondary" type="button" data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-warning" type="submit">{% trans 'Edit' %}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="modal fade" id="delete_status{{ status.pk }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">{% trans 'Are you sure you want to delete the status?' %}</h5>
+                                        <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the status.' %}</div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" type="button" data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                        <a class="btn btn-danger" href="{% url 'delete_status' status.board_id status.pk %}">{% trans 'Delete' %}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+            
+            <div class="card-body bg-light">
+
+                {% if status.name_ru == 'Новая' %}
+                    <a class="btn btn-primary btn-block p-3 text-white" data-toggle="modal"
+                       data-target="#new_contract">{% trans 'New contract' %}</a>
+                    <br>
+
+                    <div class="modal fade" id="new_contract" tabindex="-1" role="dialog"
+                         aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="exampleModalLabel">{% trans 'New contract' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal"
+                                            aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{% url 'create_contract' board_id %}" method="post"
+                                          enctype="multipart/form-data">
+                                        {% csrf_token %}
+
+                                        <label for="name">{% trans 'Name' %}: </label>
+                                        <input class="form-control" type="text" id="name" name="name"
+                                               required/>
+
+                                        <label for="currency">{% trans 'Currency' %}: </label>
+                                        <select class="form-control" name="currency" id="currency"
+                                                required>
+                                            {% for currency in currencies %}
+                                                <option value="{{ currency.id }}">{{ currency.name }} (1
+                                                    USD = {{ currency.value }} {{ currency.name }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <label for="sum">{% trans 'Sum' %}: </label>
+                                        <input class="form-control" type="number" step="0.01" id="sum"
+                                               name="sum" required/>
+
+
+                                        <label for="description">{% trans 'Description' %}: </label>
+                                        <textarea class="form-control" type="text" id="description"
+                                                  name="description" required></textarea>
+
+                                        <label for="contact">{% trans 'Contact' %}: </label>
+                                        <div class="input-group">
+                                            <select class="form-control" name="contact" id="contact"
+                                                    onchange="contact_select_change(this)" required>
+                                                <option value="" selected>----------------</option>
+                                                {% for contact in contacts %}
+                                                    <option value="{{ contact.id }}">
+                                                        {{ contact.full_name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <button class="btn" type="button" data-toggle="modal"
+                                                    data-target="#new_contact" onclick="add_contact_fromcontract()"><i
+                                                    class="fas fa-user-plus"></i></button>
+                                        </div>
+
+                                        <div class="" id="contact_fields" hidden>
+
+                                            <label for="contact_email">{% trans 'Email' %}: </label>
+                                            <input class="form-control" type="text" id="contact_email"
+                                                   name="contact_email" disabled>
+
+                                            <label for="contact_phone">{% trans 'Phone number' %}: </label>
+                                            <input class="form-control" type="text" id="contact_phone"
+                                                   name="contact_phone" disabled>
+
+                                            <label for="company_name">{% trans 'Company name' %}: </label>
+                                            <input class="form-control" type="text" id="company_name"
+                                                   name="company_name" disabled>
+
+                                            <label for="company_site">{% trans 'Company site' %}: </label>
+                                            <input class="form-control" type="text" id="company_site"
+                                                   name="company_site" disabled>
+
+                                        </div>
+
+                                        <label for="contract_files">{% trans 'Contract files' %}</label>
+                                        <input type="file" id="contract_files" name="contract_files" multiple/>
+
+                                        <button class="btn btn-secondary" type="button"
+                                                data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                        <button class="btn btn-success"
+                                                type="submit">{% trans 'Create' %}</button>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="new_contact" tabindex="-1" role="dialog"
+                         aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="exampleModalLabel">{% trans 'Add client' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal"
+                                            aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <form class="user" method="post" id="addUserForm"
+                                          onsubmit="add_contact_fromcontract_submit(event, `{% url 'create_contact_from_contract' %}`)">
+                                        {% csrf_token %}
+
+                                        {{ add_contact_form }}
+                                        <div class="modal-footer">
+                                            <input type="submit" class="btn btn-primary btn-user btn-block"
+                                                   value="{% trans 'Add Contact' %}">
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+                {% if contracts %}
+                    {% for contract in contracts %}
+                        <a class="btn btn-block p-3 bg-white text-dark" href="{% url 'contract' board_id contract.id %}">
+                            <img class="rounded-circle contract-image" src="{{ contract.board_member.avatar_url }}" title="{{ contract.board_member.name }}">
+                            {{ contract.name }}
+
+                            {% can_edit_contract request.user contract as editable %}
+                            {% if editable %}
+                                <div class="btn-group">
+                                    <button class="btn btn-primary inside-btn {% if contract.status.name_ru == 'Сделка успешна' or contract.status.name_ru == 'Удалена' or contract.status.name_ru == 'Сделка провалена' %}disabled{% endif %}" onclick="board_event(event, `transfer_contract{{ contract.pk }}`)"><i class="fas fa-exchange-alt"></i></button>
+                                    <button class="btn btn-danger inside-btn" title="{% trans 'Delete' %}" onclick="board_event(event, `delete_contract{{ contract.pk }}`)"><i class="fas fa-trash"></i></button>
+                                </div>
+                            {% endif %}
+                        </a>
+                        <br>
+                        {# Аналогично кнопкам удаления и редактирования рендерим попапы #}
+                        {% if editable %}
+                            <div class="modal fade" id="transfer_contract{{ contract.pk }}"
+                                 tabindex="-1"
+                                 role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="user" method="post"
+                                                  action="{% url 'transfer_contract' board_id contract.pk %}">
+                                                {% csrf_token %}
+                                                <div class="col-sm-5">
+                                                    <label for="id_transfer_contract">{% trans "Select status" %}: </label>
+                                                    <select id="id_transfer_contract"
+                                                            name="transfer_contract"
+                                                            class="form-control"
+                                                            style="width: 100%">
+                                                        {% for status, contracts in data.items %}
+                                                            {% if status.name_ru != 'Удалена' %}
+                                                                <option value="{{ status.pk }}"
+                                                                        {% if contract.status.pk == status.pk %}selected{% endif %}>{{ status.name }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <input type="submit"
+                                                       class="btn btn-primary btn-user btn-block"
+                                                       value="{% trans 'Change contract status' %}">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="delete_contract{{ contract.pk }}" tabindex="-1"
+                                 role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the contract?' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the contract.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            {% if status.name_ru != "Удалена" %}
+                                                <a class="btn btn-danger"
+                                                   href="{% url 'add_contract_to_trash' board_id contract.pk %}">{% trans 'Delete' %}</a>
+                                            {% else %}
+                                                <a class="btn btn-danger"
+                                                   href="{% url 'delete_contract' board_id contract.pk %}">{% trans 'Delete forever' %}</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {% if status.name_ru != 'Новая' %}
+                        <span>{% trans 'No contracts with status' %}: {{ status.name }}</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endfor %}

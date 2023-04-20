@@ -1,0 +1,154 @@
+{% load i18n %}
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<h3 class="mb-2 p-3 text-gray-800">{% trans 'Clients search' %} <a class="text-secondary" href="https://app.salestech.pro/ru/wiki/nachalo-raboty/"><i class="fas fa-info-circle"></i></a></h3>
+
+
+<div class="card shadow" id="byfeature">
+    <div class="card-body">
+        <form method="post" id="by_feature">
+            {% csrf_token %}
+            <div class="row">
+
+                <div class="col-sm-5">
+                    <label for="id_company_size">{{ find_by_feature_form.fields.company_size.label }}: </label>
+                    <select id="id_company_size" name="company_size"
+                            class="form-control form-control-user" style="width: 100%">
+                        {% for x, y in find_by_feature_form.fields.company_size.choices %}
+                            <option value="{{ x }}"
+                                    {% if company_size == x %}
+                                    selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm-5">
+                    <label for="id_company_branch">{{ find_by_feature_form.fields.company_branch.label }}: </label>
+                    <select id="id_company_branch" name="company_branch"
+                            class="form-control form-control-user" style="width: 100%">
+                        {% for x, y in find_by_feature_form.fields.company_branch.choices %}
+                            <option value="{{ x }}"
+                                    {% if company_branch == x %}
+                                    selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <label for="submit"><br></label>
+                    <input type="submit" id="submit" class="btn btn-primary btn-user btn-block"
+                        value="{% trans 'Find client' %}">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="card shadow mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div class="tab-content">
+                <div class="tab-pane active" id="list1" role="tabpanel"
+                        aria-labelledby="list-home-list1">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Name' %}</th>
+                            <th>{% trans 'Position' %}</th>
+                            <th>{% trans 'Email' %}</th>
+                            <th>{% trans 'LinkedIn profile' %}</th>
+                            <th>{% trans 'Company name' %}</th>
+                            <th>{% trans 'Status' %}</th>
+                        </tr>
+                        </thead>
+            
+                        <tbody id="tb_byfeature">
+                            {% if paginator.queryset %}
+                                {% for contact in paginator.queryset %}
+                                    <tr>
+                                        <td>{{ contact.name }} {{ contact.surname }}</td>
+                                        <td>{{ contact.position_in_company }}</td>
+                                        <td class="email"
+                                            id="contact_email{{ contact.id }}{{ by }}">{% trans 'Hidden' %}</td>
+                                        <td>
+                                            {% if contact.linkedin_link|slice:":9" == "https://" %}
+                                                <a href="{{ contact.linkedin_link }}">{{ contact.linkedin_link }}</a>
+                                            {% else %}
+                                                <a href="https://{{ contact.linkedin_link }}">{{ contact.linkedin_link }}</a>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>{{ contact.company.company_name }}</td>
+                                        <td></td>
+                                        <td>
+                                            <button class="btn btn-primary m-2"
+                                                    id="unlock_email{{ forloop.counter }}"
+                                                    data-url="{% url 'contacts' 0 'email' %}" data-by="{{ by }}" data-contact_id="{{ contact.id }}" data-counter="{{ forloop.counter }}"
+                                                    title="{% trans 'Unlock email' %}"><i
+                                                    class="fas fa-eye"></i></button>
+
+                                            <button class="btn btn-primary m-2" data-toggle="modal"
+                                                    id="add_to_list{{ forloop.counter }}{{ by }}"
+                                                    data-target="#add_generated_contact_to_list{{ forloop.counter }}{{ by }}"
+                                                    onclick="processModalForm()"
+                                                    disabled="disabled"
+                                                    name="add_to_list{{forloop.counter}}{{ by }}"
+                                                    title="{% trans 'Add to existing list' %}">
+                                                <i class="fas fa-list"></i>
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <td valign="top" colspan="6" class="text-center">{% trans 'No data available in table' %}</td>
+                            {% endif %}
+                        </tbody>
+
+                    </table>
+
+                    {% if paginator.queryset %}
+                        <ul class="pagination" id="pagination">
+                            <li class="page-item {% if not paginator.previous_page %} disabled {% endif %}">
+                                <a class="page-link" tabindex="-1"
+                                id="{{ by }}-paginator" data-value="{{ paginator.previous_page }}" data-url="{% url 'find_clients' 'feature' %}">{% trans 'Previous' %}</a>
+                            </li>
+                            {% for page in paginator.pages %}
+                                {% if paginator.this_page == page %}
+                                    <li class="page-item active"><span
+                                            class="page-link">{{ page }}</span></li>
+                                {% elif page == paginator.ellipsis %}
+                                    <li class="page-item disabled"><span
+                                            class="page-link">{{ page }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link"
+                                        id="{{ by }}-paginator" data-value="{{ page }}" data-url="{% url 'find_clients' 'feature' %}">{{ page }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            <li class="page-item {% if not paginator.next_page %} disabled {% endif %}">
+                                <a class="page-link" tabindex="-1"
+                                id="{{ by }}-paginator" data-value="{{ paginator.next_page }}" data-url="{% url 'find_clients' 'feature' %}">{% trans 'Next' %}</a>
+                            </li>
+                        </ul>
+                    {% endif %}
+
+                    {% if paginator.queryset %}
+                        {% for contact in paginator.queryset %}
+                            {% include 'company/includes/find_clients/add_contact_forms.html' with by=by index=forloop.counter name=contact.name surname=contact.surname middle_name=contact.middle_name phone_number=contact.phone position=contact.position_in_company company=contact.company.company_name domain=contact.company.company_site telegram_id=contact.telegram_id %}
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

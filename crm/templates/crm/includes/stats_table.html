@@ -1,0 +1,24 @@
+{% load i18n %}
+
+<table class="table table-hover table-responsive">
+    <thead>
+        <tr>
+            <th scope="col">{% trans 'Team member' %}</th>
+            {% for status in statuses %}
+                <th scope="col">{{ status.name }}</th>
+            {% endfor %}
+            <th scope="col">{% trans 'Total' %}</th>
+            <th scope="col">{% trans 'Total amount' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for board_member_email, results in board_member_stat.items %}
+            <tr>
+                <th>{{ board_member_email }}</th>
+                {% for result in results %}
+                    <th>{{ result }}</th>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

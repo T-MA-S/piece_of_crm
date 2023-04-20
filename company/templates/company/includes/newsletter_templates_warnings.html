@@ -1,0 +1,49 @@
+{% load i18n %}
+
+<div class="myAlert-bottom alert alert-warning" id="newsletter-alert-name">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans 'Newsletter Template name' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="email-popup-alert-subjectline">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Subject line"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="email-popup-alert-message">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Message"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="email-popup-alert-template-name">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Template name"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="delay-popup-alert-delay">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Delay"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="goal-popup-alert-goal">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Goal"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-warning" id="trigger-popup-alert-trigger">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Please fill in the field' %} {% trans '"Trigger"' %}
+</div>
+
+<div class="myAlert-bottom alert alert-danger" id="trigger-popup-alert-first">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Newsletter cannot start with Trigger' %}
+</div>
+
+<div class="myAlert-bottom alert alert-danger" id="trigger-popup-alert-Telegram">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Trigger cannot be after' %} Telegram
+</div>
+
+<div class="myAlert-bottom alert alert-danger" id="trigger-popup-alert-Delay">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Trigger cannot be after' %} Delay
+</div>
+
+<div class="myAlert-bottom alert alert-danger" id="trigger-popup-alert-Goal">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Trigger cannot be after' %} Goal
+</div>
+
+<div class="myAlert-bottom alert alert-danger" id="newsletter-alert-empty">
+    <strong>{% trans 'Warning!' %}</strong> {% trans 'Must be at least Email or Telegram' %}
+</div>

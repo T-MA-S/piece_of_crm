@@ -1,0 +1,128 @@
+{% extends 'dashboard/base.html' %}
+{% load tags %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Templates{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'main/css/contracts.css' %}">
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+    <script src="{% static 'main/js/contracts.js' %}"></script>
+
+    <div class="page-wrapper">
+        <!-- Begin Page Content -->
+
+        <div class="container-fluid">
+            <div class="modal fade" id="board_logs" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{% trans 'Action Logs' %}</h5>
+                            <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {% if logs %}
+                                {% for log in logs %}
+                                    <p>{{ log.created_at }} | {{ log.description | safe }}</p>
+                                    <hr>
+                                {% endfor %}
+                            {% else %}
+                                <p>{% trans 'There are no logs for this board' %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger" role="alert">{{ message }}</div>
+                    {% else %}
+                        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div class="row mb-2">
+                <div class="col-12 col-sm-12 col-md-10 col-lg-11 col-xl-11">
+                    {% if member_role != "EMPL" %}
+                        <label for="currency">{% trans "Select Team member" %}: </label>
+                        <select class="form-control" name="team_members" id="team_members"
+                                onchange="change_contracts_team_member(`{% url 'contracts_by_teammember' %}`)">
+                            <option value="" selected>{% trans "All members" %}</option>
+                            {% for team_member in team_members %}
+                                <option value="{{ team_member.pk }}">{{ team_member.name }} ({{ team_member.email }})</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-2 col-lg-1 col-xl-1">
+                    <button data-target="#board_logs" data-toggle="modal" class="btn btn-block btn-primary h-100">{% trans "Board logs" %}</button>
+                </div>
+            </div>
+
+
+            <div class="row scrolling-wrapper-flexbox" id="statuses-block">
+                {% include 'crm/includes/contracts_list.html' with data=data member_role=member_role status_max_position=status_max_position %}
+
+                <div class="col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4">
+                    <div class="card">
+                        <a class="btn btn-primary btn-block p-3 text-white" style="height: 8vh;" data-toggle="modal" data-target="#new_status">{% trans 'New status' %}</a>
+                        <div class="modal fade" id="new_status" tabindex="-1" role="dialog"
+                             aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">{% trans 'New status' %}</h5>
+                                        <button type="button" class="close close-btn" data-dismiss="modal"
+                                                aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="" method="post"
+                                              enctype="multipart/form-data">
+                                            {% csrf_token %}
+
+                                            <label for="name">{% trans 'Name' %}: </label>
+                                            <input class="form-control" type="text" id="name" name="name" required/>
+
+                                            <label for="name">{% trans 'Color' %}: </label>
+                                            <select class="form-control" id="color" name="color" required>
+                                                {% for key, color in colors %}
+                                                    <option value="{{ key }}">{{ color }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <label for="name">{% trans 'Position in board' %}: </label>
+                                            <input class="form-control" type="number" value="2" min="2"
+                                                   max="{{ status_max_position }}" id="position" name="position"
+                                                   required/>
+
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-success"
+                                                    type="submit">{% trans 'Create' %}</button>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

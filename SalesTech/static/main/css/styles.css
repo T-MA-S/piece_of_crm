@@ -1,0 +1,11 @@
+.scrollable {
+    overflow-y: scroll;
+}
+
+.collapse {
+    z-index: 1000 !important;
+}
+
+.base-footer {
+    padding: 1vh;
+}

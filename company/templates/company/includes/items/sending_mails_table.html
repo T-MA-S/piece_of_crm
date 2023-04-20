@@ -1,0 +1,71 @@
+{% load i18n %}
+
+
+<div class="tab-content">
+    <div class="tab-pane active" role="tabpanel" aria-labelledby="list-tamplate-list{{ list_id }}">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="btn" id="sending-checks_button-{{ list_id }}" data-list_id="{{ list_id }}"></input></th>
+                    <th>{% trans "Email" %}</th>
+                    <th>{% trans "Template" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Sending time" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if paginator.queryset %}
+                    {% for sending_mail in paginator.queryset %}
+                        <tr>
+                            <td><input type="checkbox" class="btn" id="sending-check-{{ list_id }}-{{ sending_mail.pk }}" data-sending_mail_id="{{ sending_mail.pk }}" data-is_email="{{ sending_mail.is_email }}"></input></td>
+                            <td id="{{ sending_mail.id }}">{{ sending_mail.recipient.email }}</td>
+                            <td id="{{ sending_mail.id }}">{{ sending_mail.template_name }}</td>
+                            {% if sending_mail.status == "Error" %}
+                                <td id="{{ sending_mail.id }}">{% trans sending_mail.status|safe %} {{ sending_mail.error_description }}</td>
+                            {% elif sending_mail.status == "Opened" %}
+                                <td id="{{ sending_mail.id }}">{% trans sending_mail.status %} {{ sending_mail.opened_at_visual }}</td>
+                            {% else %}
+                                <td id="{{ sending_mail.id }}">{% trans sending_mail.status %}</td>
+                            {% endif %}
+
+                            <td id="{{ sending_mail.id }}">
+                                {% if sending_mail.status == "Pending" and sending_mail.active %}
+                                    {{ sending_mail.date }}
+                                {% else %}-
+                                {% endif %}
+                            </td>
+                            <td id="{{ sending_mail.id }}">
+                                {% if sending_mail.status == "Pending" and sending_mail.active %}
+                                    <button class="btn btn-warning" onclick=location.href="{% url 'sendingmail_break' sending_mail.id %}?page={{ paginator.this_page }}" title="{% trans 'Break' %}"><i class="fas fa-ban"></i></button>
+                                {% endif %}
+                                <button class="btn btn-danger" onclick=location.href="{% url 'sendingmail_delete' sending_mail.id %}?page={{ paginator.this_page }}" title="{% trans 'Delete' %}"><i class="fas fa-trash"></i></i></button>
+                            </td>
+                            
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <td valign="top" colspan="6" class="text-center">{% trans 'No data available in table' %}</td>
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% if paginator.queryset %}
+            <ul class="pagination" id="pagination">
+                <li class="page-item {% if not paginator.previous_page %} disabled {% endif %}"><button class="page-link" id="sending-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ paginator.previous_page }}" data-url="{% url 'get_sending_table' list_id %}" tabindex="-1">Previous</button></li>
+                {% for page in paginator.pages %}
+                    {% if paginator.this_page == page %}
+                        <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                    {% elif page == paginator.ellipsis %}
+                        <li class="page-item disabled"><span class="page-link">{{ page }}</span></li>
+                    {% else %}
+                        <li class="page-item"><button class="page-link" id="sending-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ page }}" data-url="{% url 'get_sending_table' list_id %}">{{ page }}</button></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginator.next_page %} disabled {% endif %}"><button class="page-link" id="sending-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ paginator.next_page }}" data-url="{% url 'get_sending_table' list_id %}" tabindex="-1">Next</button></li>
+            </ul>
+        {% endif %}
+            
+    </div>
+</div>

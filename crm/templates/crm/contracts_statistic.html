@@ -1,0 +1,187 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Statistic{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'main/css/contracts.css' %}">
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+
+    <script src="{% static 'main/js/chart-bar-company-statistics.js' %}"></script>
+
+    <div class="card-body">
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <div class="alert alert-danger" role="alert">{{ message }}</div>
+                {% else %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <h3 class="mb-2 p-3 text-gray-800">{% trans 'Contracts statistics' %} <a class="text-secondary" href="https://app.salestech.pro/ru/wiki/statistika-po-sdelkam/"><i class="fas fa-info-circle"></i></a></h3>
+
+        {% if boards %}
+            <div class="input-group">
+                <div class="form-group col-xs-4 col-md-4">
+                    <label for="currency">{% trans "Select Board" %}: </label>
+                    <select class="form-control" name="boards" id="boards"
+                            onchange="change_currency(`{% url 'get_contracts_data' %}`, `{% url 'update_stats_table' %}`)">
+                        {% for board in boards %}
+                            <option value="{{ board.id }}">{{ board.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col-xs-4 col-md-4">
+                    <label for="currency">{% trans "Select Currency" %}: </label>
+                    <select class="form-control" name="currency" id="currency"
+                            onchange="change_currency(`{% url 'get_contracts_data' %}`, `{% url 'update_stats_table' %}`)">
+                        {% for currency in currencies %}
+                            <option value="{{ currency.id }}">{{ currency.name }} (1 USD
+                                = {{ currency.value }} {{ currency.name }}) {{ currency.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col-xs-4 col-md-4">
+                    <label for="currency">{% trans "Select Board member" %}: </label>
+                    <select class="form-control" name="board_members" id="board_members"
+                            onchange="change_currency(`{% url 'get_contracts_data' %}`, `{% url 'update_stats_table' %}`)">
+                        {% if board_permission != "EMPL" %}
+                            <option value="0">{% trans "All members" %}</option>
+                        {% endif %}
+
+                        {% for board_member in board_members %}
+                            <option value="{{ board_member.id }}">{{ board_member.name }} ({{ board_member.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">{% trans 'Analytics' %}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-bar-1">
+                                <canvas id="myBarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{% trans 'Contracts Statuses' %}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-bar-3">
+                                <canvas id="BarPieChart-2"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{% trans 'Contract status change over a period of time' %}</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                     aria-labelledby="dropdownMenuLink">
+                                    <div class="dropdown-header">{% trans 'Choose period' %}</div>
+                                    <a class="dropdown-item"
+                                       onclick="piechart_update('last_24', `{% url 'filter_contracts_data' %}`)">{% trans 'Last 24 hours' %}</a>
+                                    <a class="dropdown-item"
+                                       onclick="piechart_update('last_48', `{% url 'filter_contracts_data' %}`)">{% trans 'Last 48 hours' %}</a>
+                                    <a class="dropdown-item"
+                                       onclick="piechart_update('last_week', `{% url 'filter_contracts_data' %}`)">{% trans 'Last week' %}</a>
+                                    <a class="dropdown-item"
+                                       onclick="piechart_update('last_month', `{% url 'filter_contracts_data' %}`)">{% trans 'Last month' %}</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item"
+                                       onclick="piechart_update('custom', `{% url 'filter_contracts_data' %}`)"
+                                       data-toggle="modal" data-target="#custom_filter">{% trans 'Custom period' %}</a>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="custom_filter" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Custom period' %}</h5>
+                                            <button type="button" class="close close-btn" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="" method="post" enctype="multipart/form-data"
+                                                  onsubmit="custom_periodform_submit(event, 'custom_form', `{% url 'filter_contracts_data' %}`)">
+                                                {% csrf_token %}
+
+                                                <label for="name">{% trans 'Period from' %}: </label>
+                                                <input class="form-control" type="date" id="period_from"
+                                                       name="period_from" required/>
+
+                                                <label for="name">{% trans 'Period to' %}: </label>
+                                                <input class="form-control" type="date" id="period_to" name="period_to"
+                                                       required/>
+
+                                                <button class="btn btn-secondary" type="button"
+                                                        data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                                <button class="btn btn-success"
+                                                        type="submit">{% trans 'Apply' %}</button>
+
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-bar-2" id="custom-period-block">
+                                <canvas id="BarPieChart-1"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if request.user.current_company_role != "EMPL" %}
+                <div class="row">
+                    <div class="col-12 bg-white" id="stats_table_block">
+                        {% include 'crm/includes/stats_table.html' with statuses=statuses board_member_stat=board_member_stat %}
+                    </div>
+                </div>
+            {% endif %}
+            <script>change_currency(`{% url 'get_contracts_data' %}`, `{% url 'update_stats_table' %}`)</script>
+        {% else %}
+            <div class="alert alert-danger"
+                 role="alert">{% trans "You don't have boards yet. To create a board go to" %} <a
+                    href="{% url 'boards' %}">{% trans 'the page' %}</a></div>
+        {% endif %}
+    </div>
+
+
+{% endblock %}

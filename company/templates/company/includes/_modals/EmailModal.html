@@ -1,0 +1,75 @@
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+<button type="button" id="addEmailButton" data-toggle="modal" data-target="#addEmailModalCenter" hidden="true"></button>
+<div class="modal fade" id="addEmailModalCenter" tabindex="-1" role="dialog" aria-labelledby="addEmailModalCenter"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmailModalCenterTitle">{% trans 'Add Email' %}</h5>
+                <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="user" id="email-popup" method="post" onsubmit="emailpopuponsubmit(event)">
+                    {% csrf_token %}
+                    <label for="id_set_template">{% trans set_template_form.fields.templates.label %}: </label>
+                    <select id="id_set_template" name="set_template" class="form-control" style="width: 100%" onchange="settemplatechange(this)">
+                        <option disabled selected value> {% trans 'Use a template' %} </option>
+                        {% for x, y in set_template_form.fields.templates.choices %}
+                            <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="edit_subject_line">{% trans 'Subject line' %}:</label>
+                    <div class="input-group">
+                        <input type="text" id="edit_subject_line" name="subject_line" class="form-control">
+                        <div class="dropdown dropright">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                { }
+                            </button>
+                            {% get_variables as variables %}
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                {% for variable in variables.0 %}
+                                    <button class="dropdown-item" type="button" id="edit_subject_line_variable{{ variable.id }}" data-list_id="{{ list_id }}" data-variable="{{ variable.variable }}">{{ variable.name }}</button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <label for="txtEditor_1">{% trans 'Message' %}  :</label>
+                    <textarea id="txtEditor_1" name="txt" data-variables="{{ variables.1 }}"></textarea>
+                    <div class="modal-footer">
+                        <input type="submit" class="btn btn-primary" value="{% trans 'Add Email' %}">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" id="addTemplateNButton" data-toggle="modal" data-target="#addTemplateNModalCenter" hidden="true"></button>
+<div class="modal fade" id="addTemplateNModalCenter" tabindex="-1" role="dialog" aria-labelledby="addTemplateNModalCenter"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTemplateNModalCenterTitle">{% trans 'Add Template' %}</h5>
+                <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="user" id="template-popup" method="post" onsubmit="addtemplate(event)">
+                    {% csrf_token %}
+                    <label for="template_name">{% trans 'Template name' %}  :</label>
+                    <input type="text" id="template_name" name="template_name" class="form-control">
+                    <div class="modal-footer">
+                        <input type="submit" class="btn btn-primary" value="{% trans 'Add Template' %}">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

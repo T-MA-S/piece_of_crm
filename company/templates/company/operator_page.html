@@ -1,0 +1,329 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}Operator page{% endblock %}
+
+{% block content %}
+<script src="{% static 'main/js/company.js' %}"></script>
+<script src="{% static 'main/js/home.js' %}"></script>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+    <div class="card-body">
+        <h1 class="h3 mb-2 p-3 text-gray-800">{% trans 'Operator interface' %}</h1>
+        <div class="card shadow mb-4 ml-3 mr-3">
+            <div class="card-body">
+
+
+                <div class="card shadow mb-4 ml-3 mr-3 search-for-contacts d-none" id="contacts">
+                    <div class="card-body">
+                        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" type="button" id="dropdownMenuButton"><i class="fas fa-user-plus"></i></button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <button type="button" class="dropdown-item" data-toggle="modal"
+                                    data-target="#addUserModalLong"
+                                    data-whatever="add_contact"
+                                    onclick="processModalForm()">
+                                {% trans "Input client data" %}
+                            </button>
+                            <button type="button" class="dropdown-item" data-toggle="modal"
+                                    data-target="#addUserModalFile"
+                                    data-whatever="add_contact"
+                                    onclick="processModalForm()">
+                                {% trans "Upload CSV file with your existing clients" %}
+                            </button>
+                        </div>
+
+                        <div class="modal fade" id="addUserModalLong" tabindex="-1" role="dialog" aria-labelledby="addUserModalLongTitle" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title"
+                                            id="addUserModalLongTitle">{% trans 'Add client' %}</h5>
+                                        <button type="button" class="close close-btn"
+                                                data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <form class="user" method="post" id="addUserForm" action="/ru/company/operator_page/">
+                                            {% csrf_token %}
+
+                                            {{ add_contact_form }}
+
+
+                                            <div class="modal-footer">
+                                                <input type="submit" onclick="$('#addUserForm').submit();" data-dismiss="modal" class="btn btn-primary btn-user btn-block" value="{% trans 'Add Contact' %}">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="addUserModalFile" tabindex="-1"
+                                role="dialog" aria-labelledby="addUserModalLongTitle"
+                                aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title"
+                                            id="addUserModalLongTitle">{% trans 'Add client' %}</h5>
+                                        <button type="button" class="close close-btn"
+                                                data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <form class="user" method="post"
+                                                id="addUserFromFileForm"
+                                                action="/ru/company/operator_page/"
+                                                enctype="multipart/form-data">
+                                            {% csrf_token %}
+
+                                            {{ add_contacts_from_file_form }}
+
+
+                                            <div class="modal-footer">
+                                                <input type="submit"
+                                                        onclick="$('#addUserFromFileForm').submit();"
+                                                        data-dismiss="modal"
+                                                        class="btn btn-primary btn-user btn-block"
+                                                        value="{% trans 'Add Contact' %}">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <table class="table table-bordered search-for-contacts d-none" id="contacts_table" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>{% trans 'Name' %}</th>
+                        <th>{% trans 'Position' %}</th>
+                        <th>{% trans 'Email' %}</th>
+                        <th>{% trans 'Company name' %}</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% if contacts_paginator.queryset %}
+                        {% for contact in contacts_paginator.queryset %}
+                            <tr>
+                                <td>{{ contact.name }} {{ contact.surname }}</td>
+                                <td>{{ contact.position_in_company }}</td>
+                                <td class="email">{{ contact.email }}</td>
+                                <td>{{ contact.company.company_name }}</td>
+                            </tr>
+
+
+                        {% endfor %}
+                    {% else %}
+                        <td valign="top" colspan="5" class="text-center">{% trans 'No data available in table' %}</td>
+                    {% endif %}
+                    </tbody>
+
+                    {% if contacts_paginator.queryset %}
+                        <ul class="pagination contacts_paginator" id="pagination">
+                            <li class="page-item {% if not contacts_paginator.previous_page %} disabled {% endif %}"><a class="page-link" tabindex="-1" onclick="operator_change_page('{{ contacts_paginator.previous_page }}')">Previous</a></li>
+                            {% for page in contacts_paginator.pages %}
+                                {% if contacts_paginator.this_page == page %}
+                                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                                {% elif page == contacts_paginator.ellipsis %}
+                                    <li class="page-item disabled"><span class="page-link">{{ page }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" onclick="operator_change_page('{{ page }}')">{{ page }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            <li class="page-item {% if not contacts_paginator.next_page %} disabled {% endif %}"><a class="page-link" tabindex="-1" onclick="operator_change_page('{{ contacts_paginator.next_page }}')">Next</a></li>
+                        </ul>
+                    {% endif %}
+
+                </table>
+
+
+                <div class="card shadow mb-4 ml-3 mr-3 search-for-companies d-none" id="companies">
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-sm">
+                                    <div class="input-group">
+                                        <label for="id_industry">{% trans 'Company branch' %}:</label>
+                                        <select id="id_industry" name="industry" class="form-control" style="width: 100%">
+                                            <option value="" {% if not selected_industry %}selected{% endif %}>------------</option>
+                                            {% for x, y in search_form.fields.industry.choices %}
+                                                {% if selected_industry %}
+                                                    {% if selected_industry == x %}
+                                                        <option value="{{ x }}" selected>{{ y }}</option>
+                                                    {% else %}
+                                                        <option value="{{ x }}">{{ y }}</option>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <option value="{{ x }}">{{ y }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        
+                                        <label for="id_company_size">{% trans 'Company size' %}:</label>
+                                        <select id="id_company_size" name="company_size" class="form-control" style="width: 100%">
+                                            <option value="" {% if not selected_size %}selected{% endif %}>------------</option>
+                                            {% for x, y in search_form.fields.company_size.choices %}
+                                                {% if selected_size %}
+                                                    {% if selected_size == x %}
+                                                        <option value="{{ x }}" selected>{{ y }}</option>
+                                                    {% else %}
+                                                        <option value="{{ x }}">{{ y }}</option>
+                                                    {% endif %}
+                                                {% else %}
+                                                <option value="{{ x }}">{{ y }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <div class="col-sm">
+                                            <label for="submit"><br></label>
+                                            <input type="submit" id="submit" class="btn btn-primary btn-user btn-block"
+                                                value="{% trans 'Filter companies' %}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+                <table class="table table-bordered search-for-companies d-none" id="companies_table" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>{% trans 'Company' %}</th>
+                            <th>{% trans 'Industry' %}</th>
+                            <th>{% trans 'Size' %}</th>
+                            <th></th>
+                            {# Место для иконки редактирования #}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for company in companies_paginator.queryset %}
+                            <tr>
+                                <td>{{ company.company_name }}</td>
+                                <td>{{ company.company_branch }}</td>
+                                <td>{{ company.company_size }}</td>
+                                <td><button class="btn btn-warning" data-toggle="modal" data-target="#edit_company_{{ company.id }}" id="edit-button{{ company.pk }}">
+                                    <i class="fas fa-edit"></i>
+                                </button></td>
+                            </tr>
+
+                            <div class="modal fade" id="edit_company_{{ company.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="user" method="post" action="/ru/company/operator_page/{{ company.id }}/?page={{ paginator.this_page }}" id="edit_company{{ company.id }}" onsubmit="edit_company_form_submit(this, event, '{{ company.pk }}', '{{ company.company_branch.pk }}', '{{ company.company_size.pk }}')">
+                                                {% csrf_token %}
+
+                                                <label for="id_company_name">Название компании:</label>
+                                                <input type="text" name="company_name" value="{{ company.company_name }}" class="form-control form-control-user" placeholder="Название компании" maxlength="128" required="" id="id_company_name">
+
+                                                <label for="id_company_site">Сайт компании:</label>
+                                                <input type="text" name="company_site" value="{{ company.company_site }}" class="form-control form-control-user" pattern="(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]" title="The entered domain is not correct" placeholder="Company url" maxlength="128" required="" id="id_company_site">
+                                                
+                                                <label for="id_company_edit_branch">{% trans 'Company branch' %}:</label>
+                                                <select placeholder="Company Industry" id="id_company_edit_branch" required="" tabindex="-1" aria-hidden="true" name="company_branch" class="form-control form-control-user" style="width: 100%">
+                                                    <option value="" {% if not company.company_branch %}selected{% endif %}>------------</option>
+                                                    {% for x, y in search_form.fields.industry.choices %}
+                                                        {% if company.company_branch %}
+                                                            {% if x == company.company_branch.id %}
+                                                                <option value="{{ x }}" selected>{{ y }}</option>
+                                                            {% else %}
+                                                                <option value="{{ x }}">{{ y }}</option>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <option value="{{ x }}">{{ y }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                                
+                                                <label for="id_company_edit_size">{% trans 'Company size' %}:</label>
+                                                <select id="id_company_edit_size" name="company_size" placeholder="Размер" required="" tabindex="-1" aria-hidden="true" class="form-control form-control-user" style="width: 100%">
+                                                    <option value="" {% if not company.company_size %}selected{% endif %}>------------</option>
+                                                    {% for x, y in search_form.fields.company_size.choices %}
+                                                        {% if company.company_size %}
+                                                            {% if x == company.company_size.id %}
+                                                                <option value="{{ x }}" selected>{{ y }}</option>
+                                                            {% else %}
+                                                                <option value="{{ x }}">{{ y }}</option>
+                                                            {% endif %}
+                                                        {% else %}
+                                                        <option value="{{ x }}">{{ y }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+
+                                                <input type="submit"
+                                                    class="btn btn-primary btn-user btn-block mt-3"
+                                                    value="{% trans 'Save changes for company' %}">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a href="#x" class="overlay"
+                            id="edit_company_{{ company.id }}"></a>
+                            <div class="popup">
+                                
+                                <a class="close" title="Закрыть" href="#close">
+                                    <span aria-hidden="true">&times;</span></a>
+                            </div>
+
+                        {% endfor %}
+                    </tbody>
+
+                    {% if companies_paginator.queryset %}
+                        <ul class="pagination companies_paginator" id="pagination">
+                            <li class="page-item {% if not companies_paginator.previous_page %} disabled {% endif %}"><a class="page-link" tabindex="-1" onclick="operator_change_page('{{ companies_paginator.previous_page }}')">Previous</a></li>
+                            {% for page in companies_paginator.pages %}
+                                {% if companies_paginator.this_page == page %}
+                                    <li class="page-item active"><span class="page-link">{{ page }}</span></li>
+                                {% elif page == companies_paginator.ellipsis %}
+                                    <li class="page-item disabled"><span class="page-link">{{ page }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" onclick="operator_change_page('{{ page }}')">{{ page }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            <li class="page-item {% if not companies_paginator.next_page %} disabled {% endif %}"><a class="page-link" tabindex="-1" onclick="operator_change_page('{{ companies_paginator.next_page }}')">Next</a></li>
+                        </ul>
+                    {% endif %}
+
+                </table> 
+            
+
+        <div class="myAlert-bottom alert alert-success">
+            <strong>{% trans 'Success' %}!</strong> {% trans 'Company was changed' %}
+        </div>
+
+        </div>
+    </div>
+</div>
+    
+
+{% endblock %}

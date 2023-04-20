@@ -1,0 +1,25 @@
+psycopg2-binary
+Django==4.1.7
+django-environ
+django-phonenumber-field[phonenumbers]
+django-ratelimit==3.0.1
+django-simple-captcha
+transliterate
+requests
+requests-futures
+django-modeltranslation
+pytracking[all]
+django-extensions
+Werkzeug
+pyOpenSSL
+# Форк из официальной версии с точно работающей версии вики. Аккуратно с обновлением, может сломаться
+
+git+https://github.com/RimSol/django-wiki.git
+django-prometheus
+xmltodict
+whitenoise
+django-storages
+boto3
+numpy
+django-crontab
+pytz

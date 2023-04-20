@@ -1,0 +1,42 @@
+{% load static %}
+{% load i18n %}
+
+<button type="button" id="addTriggerButton" data-toggle="modal" data-target="#addTriggerModalCenter" hidden="true"></button>
+<div class="modal fade" id="addTriggerModalCenter" tabindex="-1" role="dialog" aria-labelledby="addTriggerModalCenter"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTriggerModalCenterTitle">{% trans 'Add Trigger' %}</h5>
+                <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="user" id="trigger-popup" method="post" onsubmit="triggerpopuponsubmit(event)">
+                    {% csrf_token %}
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="read_unread" id="read_unread" checked>
+                        <label class="form-check-label" for="read_unread">
+                            {% trans 'Contact opened email' %}
+                        </label>
+                    </div>
+
+                    <label for="trigger">{% trans 'Waiting for a trigger up to' %}: </label>
+                    <input type="number" id="trigger" class="form-control" min="1">
+                    
+                    <select class="form-control" id="trigger-time">
+                        <option value="minutes">{% trans 'Minutes' %}</option>
+                        <option selected value="hours">{% trans 'Hours' %}</option>
+                        <option value="days">{% trans 'Days' %}</option>
+                    </select>
+
+                    <div class="modal-footer">
+                        <input type="submit" class="btn btn-primary" value="{% trans 'Add Trigger' %}">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

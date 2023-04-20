@@ -1,0 +1,198 @@
+{% load i18n %}
+{% load template_utils %}
+
+<div class="tab-content">
+    <div class="tab-pane active" role="tabpanel"
+            aria-labelledby="list-tamplate-list{{ list_id }}">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+            <thead>
+            <tr>
+                <th><input type="checkbox" class="btn" id="templates-checks_button-{{ list_id }}" data-list_id="{{ list_id }}"></input></th>
+                <th class="col-9">{% trans "Messages" %}</th>
+                <th class="col-3">{% trans 'Actions' %}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% if paginator.queryset %}
+                {% for template in paginator.queryset %}
+                    <tr>
+                        <td><input type="checkbox" class="btn" id="template-check-{{ list_id }}-{{ template.pk }}" data-template_id="{{ template.pk }}"></input></td>
+                        <td id="{{ template.id }}">{{ template.template_name }}</td>
+                        <td>
+                            <button class="btn btn-primary"
+                                    data-toggle="modal"
+                                    data-target="#transfer_template{{ template.pk }}"
+                                    title="{% trans "Move" %}"><i
+                                    class="fas fa-exchange-alt"></i>
+                            </button>
+                            <button class="btn btn-warning"
+                                    id="renametemplateButton{{ template.pk }}"
+                                    data-toggle="modal"
+                                    data-target="#renametemplateModalCenter{{ template.pk }}"
+                                    title="{% trans "Edit" %}"><i
+                                    class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger" href="#"
+                                    data-toggle="modal"
+                                    data-target="#delete_template{{ template.pk }}"
+                                    title="{% trans "Delete" %}"><i
+                                    class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <td valign="top" colspan="3"
+                    class="text-center">{% trans 'No data available in table' %}</td>
+            {% endif %}
+            </tbody>
+        </table>
+
+        {% if paginator.queryset %}
+            <ul class="pagination" id="pagination">
+                <li class="page-item {% if not paginator.previous_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1"
+                    id="template-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ paginator.previous_page }}" data-url="{% url 'template' list_id %}">{% trans 'Previous' %}</a>
+                </li>
+                {% for page in paginator.pages %}
+                    {% if paginator.this_page == page %}
+                        <li class="page-item active"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% elif page == paginator.ellipsis %}
+                        <li class="page-item disabled"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link"
+                            id="template-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ page }}" data-url="{% url 'template' list_id %}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginator.next_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1"
+                    id="template-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-value="{{ paginator.next_page }}" data-url="{% url 'template' list_id %}">{% trans 'Next' %}</a>
+                </li>
+            </ul>
+        {% endif %}
+
+        {% for template in paginator.queryset %}
+            <div class="modal fade"
+                    id="renametemplateModalCenter{{ template.pk }}"
+                    tabindex="-1" role="dialog"
+                    aria-labelledby="renametemplateModalCenter{{ template.pk }}"
+                    aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered"
+                        role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="renametemplateModalCenterTitle{{ template.pk }}">{% trans 'Edit template' %}</h5>
+                            <button type="button" class="close close-btn"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="user rename_template{{ template.id }}"
+                                    id="rename_template_form{{ template.id }}"
+                                    data-url="{% url 'template' list_id 'edit' %}?page={{ paginator.this_page }}" data-template_id="{{ template.id }}">
+                                {% csrf_token %}
+                                <label for="name_template{{ template.id }}">{% trans 'Template Name' %}:</label>
+                                <input type="text"
+                                        id="name_template{{ template.id }}"
+                                        name="name_template"
+                                        class="form-control"
+                                        value="{{ template.template_name }}" required>
+
+                                <label for="edit_subject_line{{ template.id }}">{% trans 'Subject line' %}:</label>
+                                <div class="input-group">
+                                    <input type="text"
+                                            id="edit_subject_line{{ template.id }}"
+                                            name="subject_line"
+                                            class="form-control"
+                                            value="{{ template.subject_line }}" required>
+                                    <div class="dropdown dropright">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            { }
+                                        </button>
+                                        {% get_variables as variables %}
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            {% for variable in variables.0 %}
+                                                <button class="dropdown-item" type="button" id="edit_subject_line_variable{{ variable.id }}" data-template_id="{{ template.pk }}" data-variable="{{ variable.variable}}">{{ variable.name }}</button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <label for="txtEditor_0{{ template.pk }}">{% trans 'Message' %}:</label>
+                                <textarea id="txtEditor_0{{ template.pk }}" name="txt" data-variables="{{ variables.1 }}"></textarea>
+                                <input type="text" name="__message_text{{ template.pk }}" id="__message_text{{ template.pk }}" value="{{ template.message }}" hidden>
+                                <div class="modal-footer">
+                                    <input type="submit"
+                                            class="btn btn-primary btn-user btn-block"
+                                            id="rename_template_button{{ template.id }}"
+                                            value="{% trans 'Edit template' %}">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="transfer_template{{ template.id }}"
+                    tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close close-btn"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="col-sm-5">
+                                <label for="id_transfer_template{{ template.id }}">{{ transfer_template_form.fields.templates_list.label }}: </label>
+                                <select id="id_transfer_template{{ template.id }}"
+                                        name="transfer_template{{ template.id }}"
+                                        class="form-control"
+                                        style="width: 100%">
+                                    {% for x, y in transfer_template_form.fields.templates_list.choices %}
+                                        <option value="{{ x }}"
+                                                {% if template.template_list.pk == x %}
+                                                selected {% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="submit"
+                                    class="btn btn-primary btn-user btn-block"
+                                    value="{% trans 'Transfer template' %}" id="transfer_template_button{{ template.id }}"
+                                    data-url="{% url 'template' list_id 'transfer' %}?page={{ paginator.this_page }}" data-template_id="{{ template.id }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="delete_template{{ template.id }}"
+                    tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the template?' %}</h5>
+                            <button type="button" class="close close-btn"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the template.' %}</div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" type="button"
+                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                            <button class="btn btn-danger" id="delete_template_button{{ template.pk }}"
+                            data-url="{% url 'template' list_id %}?page={{ paginator.this_page }}" data-template_id="{{ template.id }}">{% trans 'Delete' %}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

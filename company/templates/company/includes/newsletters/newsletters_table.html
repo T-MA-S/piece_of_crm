@@ -1,0 +1,131 @@
+{% load i18n %}
+
+<div class="tab-content">
+    <div class="tab-pane active" role="tabpanel"
+            aria-labelledby="list-tamplate-list{{ list_id }}">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+            <thead>
+            <tr>
+                <th><input type="checkbox" class="btn" id="newsletters-checks_button-{{ list_id }}" data-list_id="{{ list_id }}"></input></th>
+                <th class="col-9">{% trans "Messages" %}</th>
+                <th class="col-3">{% trans 'Actions' %}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% if paginator.queryset %}
+                {% for newsletter_template in paginator.queryset %}
+                    <tr>
+                        <td><input type="checkbox" class="btn" id="newsletter-check-{{ list_id }}-{{ newsletter_template.pk }}" data-newsletter_template_id="{{ newsletter_template.pk }}"></input></td>
+                        <td id="{{ newsletter_template.id }}"
+                            class="col-9">{{ newsletter_template.newsletter_name }}</td>
+                        <td class="col-3">
+                            <button class="btn btn-primary"
+                                    data-toggle="modal"
+                                    data-target="#transfer_newsletter{{ newsletter_template.pk }}"
+                                    title="{% trans 'Move' %}"><i
+                                    class="fas fa-exchange-alt"></i>
+                            </button>
+                            <button class="btn btn-warning"
+                                    onclick=location.href="{% url 'newsletter' list_id newsletter_template.pk 'edit' %}"
+                                    title="{% trans 'Edit' %}"><i
+                                    class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger"
+                                    data-toggle="modal"
+                                    data-target="#delete_newsletter{{ newsletter_template.pk }}"
+                                    title="{% trans 'Delete' %}"><i
+                                    class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <td valign="top" colspan="3"
+                    class="text-center">{% trans 'No data available in table' %}</td>
+            {% endif %}
+            </tbody>
+        </table>
+
+        {% if paginator.queryset %}
+            <ul class="pagination" id="pagination">
+                <li class="page-item {% if not paginator.previous_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1" id="newsletter-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'newsletter' list_id 'table' %}" data-value="{{ paginator.previous_page }}">{% trans 'Previous' %}</a>
+                </li>
+                {% for page in paginator.pages %}
+                    {% if paginator.this_page == page %}
+                        <li class="page-item active"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% elif page == paginator.ellipsis %}
+                        <li class="page-item disabled"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" id="newsletter-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'newsletter' list_id 'table' %}" data-value="{{ page }}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginator.next_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1" id="newsletter-paginator{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'newsletter' list_id 'table' %}" data-value="{{ paginator.next_page }}">{% trans 'Next' %}</a>
+                </li>
+            </ul>
+        {% endif %}
+
+        {% for newsletter_template in paginator.queryset %}
+            <div class="modal fade"
+                    id="transfer_newsletter{{ newsletter_template.id }}"
+                    tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close close-btn"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="col-12">
+                                <label for="id_transfer_newsletter{{ newsletter_template.id }}">{{ transfer_newsletter_form.fields.newsletters_list.label }}: </label>
+                                <select id="id_transfer_newsletter{{ newsletter_template.id }}"
+                                        name="transfer_newsletter{{ newsletter_template.id }}"
+                                        class="form-control"
+                                        style="width: 100%">
+                                    {% for x, y in transfer_newsletter_form.fields.newsletters_list.choices %}
+                                        <option value="{{ x }}"
+                                                {% if newsletter_template.newsletter_list.pk == x %}
+                                                selected {% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="submit"
+                                    class="btn btn-primary btn-user btn-block"
+                                    value="{% trans 'Edit template' %}" id="transfer_newsletter_button{{ newsletter_template.id }}" data-url="{% url 'newsletter' list_id %}?page={{ paginator.this_page }}" data-newsletter_id="{{ newsletter_template.id }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="delete_newsletter{{ newsletter_template.id }}"
+                    tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the newsletter template?' %}</h5>
+                            <button type="button" class="close close-btn"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the newsletter template.' %}</div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" type="button"
+                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                            <button class="btn btn-danger" id="delete_newsletter_button{{ newsletter_template.pk }}"
+                            data-url="{% url 'newsletter' list_id %}" data-newsletter_id="{{ newsletter_template.id }}">{% trans 'Delete' %}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

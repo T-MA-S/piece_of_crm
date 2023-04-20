@@ -1,0 +1,27 @@
+{% load static %}
+{% load i18n %}
+
+<button type="button" id="addDelayButton" data-toggle="modal" data-target="#addDelayModalCenter" hidden="true"></button>
+<div class="modal fade" id="addDelayModalCenter" tabindex="-1" role="dialog" aria-labelledby="addDelayModalCenter"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDelayModalCenterTitle">{% trans 'Add Delay' %}</h5>
+                <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="user" id="delay-popup" method="post" onsubmit="delaypopuponsubmit(event)">
+                    {% csrf_token %}
+                    <label for="delay">{% trans 'Enter the delay in hours' %}:</label>
+                    <input type="number" id="delay" class="form-control" min="1">
+                    <div class="modal-footer">
+                        <input type="submit" class="btn btn-primary" value="{% trans 'Add Delay' %}">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

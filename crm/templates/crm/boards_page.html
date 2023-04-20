@@ -1,0 +1,202 @@
+{% extends 'dashboard/base.html' %}
+{% load tags %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Доски{% endblock %}
+
+{% block content %}
+    <script src="{% static 'main/js/board.js' %}"></script>
+    <div class="container-fluid">
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <div class="alert alert-danger" role="alert">{{ message }}</div>
+                {% else %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <div class="container-fluid bg-white">
+
+            <div class="m-sm-3">
+                <a class="btn btn-primary btn-block p-3 text-white" data-toggle="modal"
+                   data-target="#new_board">{% trans 'New board' %}</a>
+                <div class="modal fade" id="new_board" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">{% trans 'New board' %}</h5>
+                                <button type="button" class="close close-btn" data-dismiss="modal"
+                                        aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="" method="post"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+
+                                    <label for="name">{% trans 'Name' %}: </label>
+                                    <input class="form-control" type="text" id="name" name="name" required/>
+
+                                    <label for="name">{% trans 'Board type' %}: </label>
+
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="board_type"
+                                                   id="full_board" value="full" checked>
+                                            <label class="form-check-label" for="full_board">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                                      title="&bull; {% trans 'New' %}&#10;&bull; {% trans 'Preparation of documents' %}&#10;&bull; {% trans 'Prepayment invoice' %}&#10;&bull; {% trans 'In progress' %}&#10;&bull; {% trans 'Final invoice' %}&#10;&bull; {% trans 'Contract failed' %}&#10;&bull; {% trans 'Analysis of the reason for the failure' %}&#10;&bull; {% trans 'Contract successful' %}&#10;&bull; {% trans 'Deleted' %}">
+                                                    {% trans 'Full' %}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="board_type"
+                                                   id="standart_board" value="standart">
+                                            <label class="form-check-label" for="standart_board">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                                      title="&bull; {% trans 'New' %}&#10;&bull; {% trans 'Preparation of documents' %}&#10;&bull; {% trans 'Prepayment invoice' %}&#10;&bull; {% trans 'In progress' %}&#10;&bull; {% trans 'Contract successful' %}&#10;&bull; {% trans 'Deleted' %}">
+                                                    {% trans 'Standart' %}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="board_type"
+                                                   id="abbreviated_board" value="abbreviated">
+                                            <label class="form-check-label" for="standart_board">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                                      title="&bull; {% trans 'New' %}&#10;&bull; {% trans 'In progress' %}&#10;&bull; {% trans 'Contract successful' %}&#10;&bull; {% trans 'Deleted' %}">
+                                                    {% trans 'Abbreviated' %}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="board_type"
+                                                   id="custom_board" value="custom">
+                                            <label class="form-check-label" for="custom_board">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                                      title="&bull; {% trans 'New' %}&#10;&bull; {% trans 'Deleted' %}">
+                                                    {% trans 'Custom' %}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn btn-secondary" type="button"
+                                            data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                    <button class="btn btn-success"
+                                            type="submit">{% trans 'Create' %}</button>
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if boards_user_owns %}
+                <h2 class="m-sm-3 text-dark">{% trans 'Boards you have created' %} <a class="text-secondary"
+                        href="https://app.salestech.pro/ru/wiki/crm-doski/"><i class="fas fa-info-circle"></i></a></h2>
+                <div class="row">
+
+                    {% for board, stats in boards_user_owns.items %}
+                        <div class="card m-sm-3 shadow-sm rounded" role="button"
+                             onclick="window.location.replace(`{% url 'board' board.pk %}`)">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-10">
+                                        <h5 class="card-title text-dark">
+                                            Доска {{ board.name }}
+                                        </h5>
+                                    </div>
+                                    <div class="col-2">
+                                        <a href="{% url 'edit_board' board_id=board.pk %}"><i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% trans 'Members' %}: {{ stats.members }} <br>
+                                    {% trans 'Contracts' %}: {{ stats.contracts }}<br>
+                                    {% trans 'Creator' %}: {{ board.get_owner.email }} <br>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if boards_user_guest %}
+            <div class="container-fluid bg-white">
+                <h2 class="m-sm-3 text-dark">{% trans 'Guest boards' %}</h2>
+                <div class="row">
+                    {% for board, stats in boards_user_guest.items %}
+                        <div class="card m-sm-3  shadow-sm rounded" role="button"
+                             onclick="window.location.replace(`{% url 'board' board.pk %}`)">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-10">
+                                        <h5 class="card-title text-dark">
+                                            Доска {{ board.name }}
+                                        </h5>
+                                    </div>
+                                    <div class="col-2">
+                                        {% can_user_edit_board request.user board as can_edit %}
+                                        {% if can_edit %}
+                                            <a href="{% url 'edit_board' board_id=board.pk %}"><i
+                                                    class="fas fa-edit"></i> </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    Участников: {{ stats.members }} <br>
+                                    Сделок: {{ stats.contracts }}<br>
+                                    Создатель: {{ board.get_owner.email }} <br>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if user_invites_to_boards %}
+            <div class="container-fluid bg-white">
+            <h2 class="m-sm-3 text-dark">{% trans 'Invites to other boards' %}</h2>
+            <div class="row">
+            {% for invite in user_invites_to_boards %}
+                <div class="card m-sm-3  shadow-sm rounded">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-10">
+                                <h5 class="card-title text-dark">
+                                    Доска {{ invite.board.name }}
+                                </h5>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            Создатель: {{ invite.board.get_owner.email }} <br>
+                            <div class="row-2 float-left">
+                                <button class="btn btn-primary"
+                                        onclick="accept_board_invite('{{ invite.id }}')">{% trans 'Accept' %}</button>
+                                <button class="btn btn-danger"
+                                        onclick="decline_board_invite('{{ invite.id }}')">{% trans 'Decline' %}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% endif %}
+        </div>
+
+{% endblock %}

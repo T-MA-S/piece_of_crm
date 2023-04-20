@@ -1,0 +1,47 @@
+{% extends 'dashboard/includes/profile.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block profile_content %}
+<div class="row m-sm-3">
+    <h3 class="text-dark m-2">{% trans 'YOUR TRANSACTIONS' %}</h3>
+</div>
+<table class="table table-bordered table-responsive">
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>{% trans 'Plan' %}</th>
+            <th>{% trans 'Price' %}</th>
+            <th>{% trans 'Created Time' %}</th>
+            <th>{% trans 'Payed Time' %}</th>
+            <th>{% trans 'Canceled Time' %}</th>
+            <th>{% trans 'Action' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if transactions %}
+            {% for transaction in transactions %}
+                <tr class="table-{{ transaction.status }}">
+                    <th>{{ transaction.transaction.pk }}</th>
+                    <td>{{ transaction.transaction.plan.name }}</td>
+                    <td>{{ transaction.transaction.price }}</td>
+                    <td>{{ transaction.transaction.created_time }}</td>
+                    <td>{% if transaction.transaction.payed_time %} {{ transaction.transaction.payed_time }} {% else %} - {% endif %}</td>
+                    <td>{% if transaction.transaction.canceled_time %} {{ transaction.transaction.canceled_time }} {% else %} - {% endif %}</td>
+
+                    {% if transaction.status == '' %}
+                        <td><button class="btn btn-primary" onclick=location.href='{% url "restart_payment" transaction.transaction.hash %}'>{% trans 'Pay' %}</button><button class="btn btn-danger" onclick=location.href='{% url "cancel_transaction" transaction.transaction.hash %}'>{% trans 'Cancel' %}</button></td>
+                    {% elif transaction.status == 'danger' %}
+                        <td><button class="btn btn-danger" disabled>{% trans 'Canceled' %}</button></td>
+                    {% elif transaction.status == 'success' %}
+                        <td><button class="btn btn-success" disabled>{% trans 'Payed' %}</button></td>
+                    {% endif %}
+
+                </tr>
+            {% endfor %}
+        {% else %}
+            <td valign="top" colspan="7" class="text-center">{% trans "You don't have any transactions yet" %}</td>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

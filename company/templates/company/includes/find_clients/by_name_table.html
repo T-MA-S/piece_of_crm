@@ -1,0 +1,106 @@
+{% load i18n %}
+
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<h3 class="mb-2 p-3 text-gray-800">{% trans 'Clients search' %} <a class="text-secondary" href="https://app.salestech.pro/ru/wiki/nachalo-raboty/"><i class="fas fa-info-circle"></i></a></h3>
+
+
+<div class="card shadow" id="byname">
+    <div class="card-body">
+        <form method="post" id="search_by_name_form" data-url="{% url 'find_clients' 'name' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm">
+                    <label for="id_name">{% trans 'Name' %}:</label>
+                    <input type="text" name="name" id="id_name" value="{{ name }}" class="form-control form-control-user" placeholder="{% trans 'Name' %}" pattern="[A-Za-zА-Яа-яЁё\s-]{2,}" title="{% trans 'You can use only latin and cyrillic symbols' %}">
+                </div>
+
+                <div class="col-sm">
+                    <label for="id_surname">{% trans 'Surname' %}:</label>
+                    <input type="text" name="surname" id="id_surname" value="{{ surname }}" class="form-control form-control-user" placeholder="{% trans 'Surname' %}" pattern="[A-Za-zА-Яа-яЁё-]{2,}" title="{% trans 'You can use only latin and cyrillic symbols' %}">
+                </div>
+
+                <div class="col-sm">
+                    <label for="id_domain">{% trans 'Domain' %}:</label>
+                    <input type="text" name="domain" id="id_domain" value="{{ domain }}" class="form-control form-control-user" placeholder="{% trans 'example.com' %}" pattern="(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]" title="{% trans 'The entered domain is not correct' %}">
+                </div>
+                <div class="col-sm">
+                    <label for="submit"><br></label>
+                    <input type="submit" id="submit" class="btn btn-primary btn-user btn-block"
+                           value="{% trans 'Find client' %}">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="card shadow mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div class="tab-content">
+                <div class="tab-pane active" id="list1" role="tabpanel"
+                        aria-labelledby="list-home-list1">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>{% trans 'Name' %}</th>
+                            <th>{% trans 'Position' %}</th>
+                            <th>{% trans 'Email' %}</th>
+                            <th>{% trans 'LinkedIn profile' %}</th>
+                            <th>{% trans 'Company name' %}</th>
+                            <th>{% trans 'Status' %}</th>
+                        </tr>
+                        </thead>
+            
+                        <tbody id="tb_byname">
+                            {% if mails_data %}
+                                {% for key, value in mails_data.items %}
+                                    <tr>
+                                        <td>{{ name }} {{ surname }}</td>
+                                        <td></td>
+                                        <td>{{ key }}</td>
+                                        <td>N/A</td>
+                                        <td>{{ domain }}</td>
+                                        <td>{{ value }}</td>
+                                        <td>
+                                            <button class="btn btn-primary m-2"
+                                                    data-toggle="modal"
+                                                    data-target="#add_generated_contact_to_list{{ forloop.counter }}{{ by }}"
+                                                    name="add_to_list{{ forloop.counter }}{{ by }}"
+                                                    id="add_to_list{{ forloop.counter }}{{ by }}"
+                                                    title="{% trans 'Add to existing list' %}">
+                                                <i class="fas fa-list"></i>
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+                            {% else %}
+                                <td valign="top" colspan="6"
+                                    class="text-center">{% trans 'No data available in table' %}</td>
+                            {% endif %}
+                        </tbody>
+
+                    </table>
+
+                    {% if mails_data %}
+                        {% for key, value in mails_data.items %}
+                            {% include 'company/includes/find_clients/add_contact_forms.html' with by=by index=forloop.counter name=name surname=surname email=key domain=domain %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

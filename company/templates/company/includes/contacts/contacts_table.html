@@ -1,0 +1,240 @@
+{% load i18n %}
+
+<div class="tab-content">
+    <div class="tab-pane active" role="tabpanel"
+         aria-labelledby="list-home-list{{ list_id }}">
+        <table class="table table-bordered"
+               width="100%" cellspacing="0">
+            <thead>
+            <tr>
+                <th><input type="checkbox" class="btn" id="contacts-checks-button{{ list_id }}"
+                    data-list_id="{{ list_id }}"></input></th>
+                <th>{% trans 'Last name' %}</th>
+                <th>{% trans 'First name' %}</th>
+                <th>{% trans 'Middle name' %}</th>
+                <th>{% trans 'Email' %}</th>
+                <th>{% trans 'Phone' %}</th>
+                <th>{% trans 'Company name' %}</th>
+                <th>{% trans 'Position' %}</th>
+                <th>{% trans 'Telegram Chat id' %}</th>
+                <th>{% trans 'Actions' %}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% if paginator.queryset %}
+                {% for container in paginator.queryset %}
+                    <tr>
+                        <td><input type="checkbox" class="btn" id="contact-check-{{ list_id }}-{{ container.pk }}" data-container_id="{{ container.pk }}"></input></td>
+                        <td>{{ container.contact.surname }}</td>
+                        <td id="{{ container.id }}">{{ container.contact.name }}</td>
+                        <td>{{ container.contact.middle_name }}</td>
+                        <td>{{ container.contact.email }}</td>
+                        <td>{{ container.contact.phone }}</td>
+                        <td>{{ container.contact.company.company_name }}</td>
+                        <td>{{ container.contact.position_in_company }}</td>
+                        <td>{{ container.contact.telegram_id }}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="btn btn-primary"
+                                    data-target="#transfer_contact{{ container.pk }}"
+                                    data-toggle="modal" title="{% trans 'Move' %}"><i
+                                    class="fas fa-exchange-alt"></i></button>
+                            <button class="btn btn-warning"
+                                    id="editcontactButton{{ container.contact.pk }}"
+                                    data-toggle="modal"
+                                    data-target="#editcontactModalCenter{{ container.contact.pk }}"
+                                    title="{% trans 'Edit' %}"><i
+                                    class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger" href="#" data-toggle="modal"
+                                    data-target="#delete_contact{{ container.contact.pk }}"
+                                    title="{% trans 'Delete' %}"><i
+                                    class="fas fa-trash"></i></button>
+                        </td>   
+                    </tr>
+
+                    <div class="modal fade" id="transfer_contact{{ container.pk }}"
+                         tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close close-btn"
+                                            data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <label for="id_transfer_contact">{{ transfer_contact_form.fields.contacts_list.label }}: </label>
+                                    <select id="id_transfer_contact"
+                                            name="transfer_contact"
+                                            class="form-control"
+                                            style="width: 100%">
+                                        {% for x, y in transfer_contact_form.fields.contacts_list.choices %}
+                                            <option value="{{ x }}"
+                                                    {% if container.list.pk == x %}
+                                                    selected {% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit"
+                                           id="transfer_contact_button_{{ container.pk }}"
+                                           class="btn btn-primary btn-user btn-block"
+                                           value="{% trans 'Move client' %}" data-url="{% url 'contacts' list_id 'transfer' %}?page={{ paginator.this_page }}" data-container_id="{{ container.pk }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="modal fade"
+                         id="delete_contact{{ container.contact.pk }}" tabindex="-1"
+                         role="dialog" aria-labelledby="exampleModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="exampleModalLabel">{% trans 'Are you sure you want to delete the contact?' %}</h5>
+                                    <button type="button" class="close close-btn"
+                                            data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the contact.' %}</div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" type="button"
+                                            data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                    <button class="btn btn-danger"
+                                            id="contact_delete_button{{ container.pk }}"
+                                            data-list_id="{{ list_id }}"
+                                            data-container_id="{{ container.pk }}"
+                                            data-contact_id="{{ container.contact.pk }}"
+                                            data-url="{% url 'contacts' %}?page={{ paginator.this_page }}">{% trans 'Delete' %}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade"
+                         id="editcontactModalCenter{{ container.contact.pk }}"
+                         tabindex="-1" role="dialog"
+                         aria-labelledby="editcontactModalCenter{{ container.contact.pk }}"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="editcontactModalCenterTitle{{ container.contact.pk }}">{% trans 'Edit contact' %}</h5>
+                                    <button type="button" class="close close-btn"
+                                            data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <label for="edit_contact_first_name{{ container.contact.pk }}">{% trans 'First name' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_first_name{{ container.contact.pk }}"
+                                            name="edit_contact_first_name{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.name }}">
+
+                                    <label for="edit_contact_last_name{{ container.contact.pk }}">{% trans 'Last name' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_last_name{{ container.contact.pk }}"
+                                            name="edit_contact_last_name{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.surname }}">
+
+                                    <label for="edit_contact_midname{{ container.contact.pk }}">{% trans 'Middle name' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_midname{{ container.contact.pk }}"
+                                            name="edit_contact_midname{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.middle_name }}">
+
+                                    <label for="edit_contact_email{{ container.contact.pk }}">{% trans 'Email' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_email{{ container.contact.pk }}"
+                                            name="edit_contact_email{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.email }}" required>
+
+                                    <label for="edit_contact_phone{{ container.contact.pk }}">{% trans 'Phone' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_phone{{ container.contact.pk }}"
+                                            name="edit_contact_phone{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.phone }}">
+
+                                    <label for="edit_contact_position{{ container.contact.pk }}">{% trans 'Position' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_position{{ container.contact.pk }}"
+                                            name="edit_contact_position{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.position_in_company }}">
+
+                                    <label for="edit_contact_company_name{{ container.contact.pk }}">{% trans 'Company name' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_company_name{{ container.contact.pk }}"
+                                            name="edit_contact_company_name{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.company.company_name }}">
+
+                                    <label for="edit_contact_company_site{{ container.contact.pk }}">{% trans 'Company site' %}:</label>
+                                    <input type="text"
+                                            id="edit_contact_company_site{{ container.contact.pk }}"
+                                            name="edit_contact_company_site{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.company.company_site }}">
+
+                                    <label for="edit_contact_telegram_id{{ container.contact.pk }}">{% trans 'Telegram Chat id' %}:</label>
+                                    <input type="number"
+                                            id="edit_contact_telegram_id{{ container.contact.pk }}"
+                                            name="edit_contact_telegram_id{{ container.contact.pk }}"
+                                            class="form-control"
+                                            value="{{ container.contact.telegram_id }}">
+
+                                    <div class="modal-footer">
+                                        <input type="submit"
+                                                class="btn btn-primary btn-block"
+                                                id="reedit_contact__button{{ container.contact.pk }}"
+                                                value="{% trans 'Edit contact' %}" data-url="{% url 'contacts' list_id 'edit' %}?page={{ paginator.this_page }}"
+                                                data-contact_id="{{ container.contact.pk }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <td valign="top" colspan="10"
+                    class="text-center">{% trans 'No data available in table' %}</td>
+            {% endif %}
+            </tbody>
+        </table>
+
+        {% if paginator.queryset %}
+            <ul class="pagination" id="pagination">
+                <li class="page-item {% if not paginator.previous_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1" id="contacts-paginator{{ list_id }}" data-value="{{ paginator.previous_page }}" data-url="{% url 'contacts' list_id %}" data-list_id="{{ list_id }}">{% trans 'Previous' %}</a>
+                </li>
+                {% for page in paginator.pages %}
+                    {% if paginator.this_page == page %}
+                        <li class="page-item active"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% elif page == paginator.ellipsis %}
+                        <li class="page-item disabled"><span
+                                class="page-link">{{ page }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" id="contacts-paginator{{ list_id }}" data-value="{{ page }}" data-url="{% url 'contacts' list_id %}" data-list_id="{{ list_id }}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginator.next_page %} disabled {% endif %}">
+                    <a class="page-link" tabindex="-1" id="contacts-paginator{{ list_id }}" data-value="{{ paginator.next_page }}" data-url="{% url 'contacts' list_id %}" data-list_id="{{ list_id }}">{% trans 'Next' %}</a>
+                </li>
+            </ul>
+        {% endif %}
+    </div>
+</div>

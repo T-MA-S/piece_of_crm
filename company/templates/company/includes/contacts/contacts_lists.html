@@ -1,0 +1,380 @@
+{% load i18n %}
+{% load template_utils %}
+
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<!-- Page Heading -->
+{% if not lists %}
+    <div class="alert alert-info"
+         role="alert">{% trans 'Sadly, you have not created any list yet. In order to make one, press' %} <a
+            class="btn btn-primary btn-user btn-bloc" ,="">
+        <i class="fas fa-list"></i>
+        <i class="fas fa-plus"></i>
+    </a>
+        {% trans "and specify it's name" %}
+    </div>
+{% endif %}
+
+<div class="row">
+    <!-- DataTales Example -->
+    <div class="w-15 col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="mb-2 p-3 text-gray-800">{% trans 'home_page_h1_clients' %} <a class="text-secondary"
+                    href="https://app.salestech.pro/ru/wiki/spiski-rassylki/"><i class="fas fa-info-circle"></i></a></h3>
+                <button type="button" class="btn btn-primary btn-user btn-bloc" data-toggle="modal"
+                        data-target="#addUserListModalCenter">
+                    <i class="fas fa-list"></i>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="modal fade" id="addUserListModalCenter" tabindex="-1" role="dialog"
+                     aria-labelledby="addUserListModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addUserListModalCenterTitle">{% trans 'Add list' %}</h5>
+                                <button type="button" class="close close-btn" data-dismiss="modal"
+                                        aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="add_contacts_list_form" data-url="{% url 'contacts_list' %}">
+
+                                    <label for="list_name">{% trans 'Name of the list' %}:</label>
+                                    <input type="text" class="form-control" name="list_name" id="list_name">
+
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary btn-block" id="add_list_button"
+                                                >{% trans 'Add list' %}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group list-group-flush" id="clientsList" role="tablist">
+                    {% if lists %}
+                        {% for list in lists %}
+                            <a class="list-group-item client-list list-group-item-action d-flex justify-content-between {% if selected_list_id and selected_list_id == list.pk %}active{% endif %}"
+                               id="list-home-list{{ list.id }}" href="#list{{ list.id }}" data-url="{% url 'contacts_list' list.pk %}" data-toggle="list" role="tab">
+                                <div class="list p-2">{{ list.list_name }}</div>
+                                <button type="button" class="btn" data-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dropdown-menu dropdown-menu-right zindex-dropdown">
+                                    <button class="dropdown-item" type="button" data-toggle="modal"
+                                            data-target="#rename_list{{ list.id }}">{% trans 'Rename list' %}</button>
+                                    <button class="dropdown-item" type="button" data-toggle="modal"
+                                            data-target="#delete_contacts_list{{ list.id }}">{% trans 'Delete list' %}</button>
+                                </div>
+                            </a>
+
+                            <div class="modal fade" id="rename_list{{ list.id }}" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close close-btn" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="user" id="rename_contacts_list_form" data-url="{% url 'contacts_list' %}" data-list_id="{{ list.id }}">
+                                                <label for="name_list">{% trans 'List name' %} :</label>
+                                                <input type="text" id="name_list{{ list.id }}" name="name_list{{ list.id }}"
+                                                    value="{{ list.list_name }}" class="form-control">
+
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-primary btn-user btn-block"
+                                                            id="rename_list_button{{ list.id }}"
+                                                            >{% trans 'Rename list' %}</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="delete_contacts_list{{ list.id }}" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the contacts list?' %}</h5>
+                                            <button type="button" class="close close-btn" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the contacts list.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-danger" id="delete_contacts_list_button{{ list.id }}"
+                                                    data-list_id="{{ list.id }}"
+                                                    data-url="{% url 'contacts_list' %}">{% trans 'Delete' %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="pt-3">{% trans 'You have no lists yet' %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-2">
+        <div class="card shadow mb-4">
+            <div class="tab-content">
+                {% for list_id, paginator in list_id_to_contacts.items %}
+                    <div class="tab-pane {% if selected_list_id and selected_list_id == list_id %}active{% endif %}"
+                         role="tabpanel" aria-labelledby="list-home-list{{ list_id }}" id="list{{ list_id }}">
+
+                        <div class="card mb-1">
+                            <div class="card-body">
+                                <form id="contacts_search_form{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'contacts' 'search' %}">
+                                    <div class="row" id="contacts_search_form_row{{ list_id }}">  
+                                        <div class="col-sm">
+                                            <label for="search_name{{ list_id }}">{% trans 'Name' %}:</label>
+                                            <input type="text" class="form-control" name="search_name"
+                                                id="search_name{{ list_id }}">
+                                        </div>
+                                        <div class="col-sm">
+                                            <label for="search_surname{{ list_id }}">{% trans 'Surname' %}:</label>
+                                            <input type="text" class="form-control" name="search_surname"
+                                                id="search_surname{{ list_id }}">
+                                        </div>
+                                        <div class="col-sm">
+                                            <label for="search_domain{{ list_id }}">{% trans 'Domain' %}:</label>
+                                            <input type="text" class="form-control" name="search_domain"
+                                                id="search_domain{{ list_id }}">
+                                        </div>
+                                        <div class="col-sm">
+                                            <label for="submit"><br></label>
+                                            <button type="submit" class="btn btn-primary btn-user btn-block">{% trans 'Find contact' %}</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row mb-2">
+
+                                <div class="col-6">
+                                    <br/>
+                                    <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false" type="button"
+                                            id="dropdownMenuButton">
+                                        <i class="fas fa-user-plus"></i>
+                                    </button>
+
+
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        <button type="button" class="dropdown-item" data-toggle="modal"
+                                                data-target="#addUserModalLong_{{ list_id }}"
+                                                data-whatever="add_contact{{ list_id }}" onclick="processModalForm()">
+                                            {% trans "Input client data" %}
+                                        </button>
+                                        <button type="button" class="dropdown-item" data-toggle="modal"
+                                                data-target="#addUserModalFile_{{ list_id }}"
+                                                data-whatever="add_contact{{ list_id }}" onclick="processModalForm()">
+                                            {% trans "Upload CSV file with your existing clients" %}
+                                        </button>
+                                    </div>
+
+                                    <a class="btn btn-primary btn-user m-2 {% if not paginator.queryset %}disabled{% endif %}"
+                                       href="{% url 'export_list_to_csv' list_id=list_id %}">
+                                        <i class="fas fa-file-export"></i>
+                                    </a>
+
+                                    <a class="btn btn-danger btn-user m-2"
+                                       onclick="remove_clients('{{ list_id }}, {{ forloop.counter }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+
+                                </div>
+
+                                <div class="col-6">
+                                    <form action="" id="contact_actions_form{{ list_id }}" data-list_id="{{ list_id }}" data-update_url="{% url 'contacts_actions' %}" data-page="{{ paginator.this_page }}" data-trans_id="" data-bulk_del="">
+                                        <label for="actions-{{ list_id }}">{% trans 'Action' %}:</label>
+                                        <div class="input-group">
+                                            <select class="form-control" name="actions-{{ list_id }}"
+                                                    id="actions-{{ list_id }}" data-list_id="{{ list_id }}">
+                                                <option id="empty-{{ list_id }}" value>---------</option>
+                                                <option id="del-{{ list_id }}"
+                                                        value="del">{% trans 'Delete selected contacts' %}</option>
+                                                <option id="trans-{{ list_id }}"
+                                                        value="trans">{% trans 'Transfer selected contacts' %}</option>
+                                            </select>
+                                            <button id="contact_actions_submit{{ list_id }}" type="submit" class="btn btn-secondary">{% trans 'Submit' %}</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="modal fade" id="bulk_transfer_contact{{ list_id }}" tabindex="-1"
+                                     role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close close-btn" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="bulk_transfer_contact_form{{ list_id }}" data-list_id="{{ list_id }}">
+                                                    <label for="id_bulk_transfer_contact_{{ list_id }}">{{ transfer_contact_form.fields.contacts_list.label }}: </label>
+                                                    <select id="id_bulk_transfer_contact_{{ list_id }}"
+                                                            name="bulk_transfer_contact_{{ list_id }}"
+                                                            class="form-control"
+                                                            style="width: 100%">
+                                                        {% for x, y in transfer_contact_form.fields.contacts_list.choices %}
+                                                            <option value="{{ x }}"
+                                                                    {% if list_id == x %}
+                                                                    selected {% endif %}>{{ y }}</option>
+                                                        {% endfor %}
+                                                    </select>
+
+                                                    <div class="modal-footer">
+                                                        <input type="submit" id="bulk_transfer_contact_submit_{{ list_id }}"
+                                                               class="btn btn-primary btn-user btn-block"
+                                                               value="{% trans 'Move clients' %}">
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="bulk_delete_contact{{ list_id }}" tabindex="-1"
+                                     role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title"
+                                                    id="exampleModalLabel">{% trans 'Are you sure you want to delete the selected contacts?' %}</h5>
+                                                <button type="button" class="close close-btn"
+                                                        data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">{% trans 'Select "Delete" below if you are ready to delete contacts.' %}</div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-secondary" type="button"
+                                                        data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                                <button class="btn btn-danger"
+                                                        id="bulk_delete_button{{ list_id }}"
+                                                        data-list_id="{{ list_id }}">{% trans 'Delete' %}</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <!-- Add contact Pop-Up -->
+                            <div class="modal fade" id="addUserModalLong_{{ list_id }}" tabindex="-1"
+                                 role="dialog" aria-labelledby="addUserModalLongTitle_{{ list_id }}"
+                                 aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="addUserModalLongTitle_{{ list_id }}">{% trans 'Add client' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% get_validator_is_active as validator_is_active %}
+                                            {% if validator_is_active %}
+                                                <form class="user" id="addUserForm_{{ list_id }}" data-url="{% url 'contacts' list_id 'create' %}" data-list_id="{{ list_id }}">
+
+                                                    <input class="form-control form-control-user" id="firstname" name="first_name" type="text" placeholder="{% trans 'First name' %}">
+                                                    <input class="form-control form-control-user" id="surname" name="surname" type="text" placeholder="{% trans 'Surname' %}">
+                                                    <input class="form-control form-control-user" id="middle_name" name="middle_name" type="text" placeholder="{% trans 'Middle Name' %}">
+                                                    <input class="form-control form-control-user" id="email" name="email" type="email" placeholder="{% trans 'Email' %}" required>
+                                                    <input class="form-control form-control-user" id="id_phone_number" name="phone_number" type="tel" maxlength="18" data-tel-input placeholder="{% trans 'Phone' %}">
+                                                    <input class="form-control form-control-user" id="position" name="position" type="text" placeholder="{% trans 'Position' %}">
+                                                    <input class="form-control form-control-user basicAutoComplete" id="id_company" name="company" type="text" data-url="{% url 'company_name_autocomplete' %}" onchange="company_field_changed(this.value)" placeholder="{% trans 'Company name' %}">
+                                                    <input class="form-control form-control-user" id="id_site" name="site" type="text" placeholder="{% trans 'Company website' %}">
+                                                    <input class="form-control form-control-user" id="id_telegram_id" name="telegram_id" type="text" placeholder="{% trans 'Telegram ID' %}">
+
+                                                    <div class="modal-footer">
+                                                        <input type="submit"
+                                                               class="btn btn-primary btn-user btn-block"
+                                                               value="{% trans 'Add Contact' %}">
+                                                    </div>
+                                                </form>
+                                            {% else %}
+                                                <div class="alert alert-danger" role="alert">
+                                                    {% trans "An error has occurred. Technical work is underway. We'll fix it soon" %}
+                                                </div>
+                                                <button class="btn btn-secondary" type="button"
+                                                        data-dismiss="modal">{% trans 'Close' %}</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="addUserModalFile_{{ list_id }}" tabindex="-1"
+                                 role="dialog" aria-labelledby="addUserModalLongTitle_{{ list_id }}"
+                                 aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="addUserModalLongTitle_{{ list_id }}">{% trans 'Add client' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body" id="add_client_from_file_body{{ list_id }}">
+
+                                            <form method="post"
+                                                  id="addUserFromFileForm_{{ list_id }}"
+                                                  action="{% url 'contacts' list_id 'create' %}"
+                                                  enctype="multipart/form-data">
+                                                {% csrf_token %}
+
+                                                {{ add_contacts_from_file_form }}
+
+                                                <div class="modal-footer">
+                                                    <input type="submit"
+                                                        id="add_client_from_file_button{{ list_id }}"
+                                                           class="btn btn-primary btn-block"
+                                                           value="{% trans 'Add Contact' %}">
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" id="contacts_table{{ list_id }}">
+                                {% include 'company/includes/contacts/contacts_table.html' with list_id=list_id paginator=paginator transfer_contact_form=transfer_contact_form %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

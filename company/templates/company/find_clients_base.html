@@ -1,0 +1,55 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block content %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+    <script src="{% static 'main/js/find_clients.js' %}"></script>
+
+    <div class="card-body">
+        {% get_validator_is_active as validator_is_active %}
+        {% if validator_is_active %}
+            <div class="page-loading m-2">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary mr-3" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <h4>{% trans "Loading..." %}</h4>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="search-for-name d-none" id="search-for-name">
+                    {% include 'company/includes/find_clients/by_name_table.html' with paginator=paginator by=byname %}
+                </div>
+
+                <div class="search-for-domain d-none" id="search-for-domain">
+                    {% include 'company/includes/find_clients/by_domain_table.html' with paginator=paginator by=bydomain %}
+                </div>
+
+                <div class="search-for-feature d-none" id="search-for-feature">
+                    {% include 'company/includes/find_clients/by_feature_table.html' with paginator=paginator by=byfeature %}
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                {% trans "An error has occurred. Technical work is underway. We'll fix it soon" %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success">
+        <strong>{% trans 'Success' %}!</strong> {% trans 'Client was successfully added' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="search_success">
+        <strong>{% trans 'Success' %}!</strong> {% trans 'Search completed successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="contact_success_created">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Contact created successfully' %}
+    </div>
+{% endblock %}

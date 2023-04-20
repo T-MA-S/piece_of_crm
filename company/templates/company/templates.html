@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Letter templates list{% endblock %}
+
+{% block content %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+
+    <div class="container-fluid" id="templates-list">
+        {% include 'company/includes/templates/templates_lists.html' with messages=messages templates_lists=templates_lists list_ids=list_ids %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="template_edit">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Change at least one field' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="template_success_created">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Template created successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="template_success_deleted">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Template deleted successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="template_success_transferred">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Template transferred successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="template_edit">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Change at least one field' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_templates_select_action">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Choose an action first' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_templates_select_template">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Select at least one template' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="bulk_templates_del_alert">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Selected templates deleted successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="bulk_templates_trans_alert">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Selected templates have been successfully transferred to another list' %}
+    </div>
+
+{% endblock %}

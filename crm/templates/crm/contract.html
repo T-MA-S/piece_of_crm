@@ -1,0 +1,146 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Templates{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'main/css/contracts.css' %}">
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+    <script src="{% static 'main/js/contracts.js' %}"></script>
+
+    <div class="page-wrapper">
+        <!-- Begin Page Content -->
+
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger" role="alert">{{ message }}</div>
+                    {% else %}
+                        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div>
+                <h1>Информация о контракте</h1>
+
+                <label for="name">{% trans 'Name' %}: </label>
+                <input class="form-control" type="text" value="{{ contract.name }}" disabled/>
+
+                <label for="name">{% trans 'Status' %}: </label>
+                <input class="form-control" type="text" value="{{ contract.status.name }}" disabled/>
+
+                <label for="name">{% trans 'Currency' %}: </label>
+                <input class="form-control" type="text" value="{{ contract.name }}" disabled/>
+
+                <label for="sum">{% trans 'Sum' %}: </label>
+                <input class="form-control" type="text" value="{{ contract.sum }}" disabled/>
+
+
+                <label for="description">{% trans 'Description' %}: </label>
+                <textarea class="form-control" rows="5" type="text" disabled>{{ contract.description }}</textarea>
+
+                <label for="contact">{% trans 'Contact' %}: </label>
+                <div class="input-group">
+                    <select class="form-control"
+                            onchange="contract_contact_select_change(this, `{% url 'change_contracts_contact' %}`, `{{ contract.pk }}`)">
+                        {% for contact in contacts %}
+                            <option value="{{ contact.id }}"
+                                    {% if contract.contact.pk == contact.pk %}selected{% endif %}>
+                                {{ contact.full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <label for="contact_email">{% trans 'Email' %}: </label>
+                <input class="form-control" type="text" id="contact_email" value="{{ contract.contact.email }}"
+                       disabled>
+
+                <label for="contact_phone">{% trans 'Phone number' %}: </label>
+                <input class="form-control" type="text" id="contact_phone" value="{{ contract.contact.phone }}"
+                       disabled>
+
+                <label for="company_name">{% trans 'Company name' %}: </label>
+                <input class="form-control" type="text" id="company_name" value="{{ contract.company.company_name }}"
+                       disabled>
+
+                <label for="company_site">{% trans 'Company site' %}: </label>
+                <input class="form-control" type="text" id="company_site" value="{{ contract.company.company_site }}"
+                       disabled>
+                {% if contract_files %}
+                    <h3>{% trans 'Contract files' %}</h3>
+                    {% for contract_url in contract_files %}
+                        <div>
+                            <a href="{{ contract_url }}" target="_blank">{% trans 'File' %} {{ forloop.counter }}</a>
+                            <button class="btn btn-danger"
+                                    onclick="delete_contract_attachment('{{ contract.id }}', {{ forloop.counter0 }})"><i
+                                    class="fas fa-trash"></i></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <button class="m-100 btn btn-primary" data-toggle="modal" data-target="#edit_contract">Редактировать
+                сделку
+            </button>
+            <div class="modal fade" id="edit_contract" tabindex="-1" role="dialog"
+                 aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Редактирование контракта</h5>
+                            <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                {% for field in edit_contract_form %}
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                {% endfor %}
+                                <label for="contract_files">{% trans 'Contract files' %}</label>
+                                <input type="file" id="contract_files" name="contract_files" multiple/>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" type="button" data-dismiss="modal">Отмена</button>
+                                <button class="btn btn-primary" type="submit">Сохранить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <button class="m-100 btn btn-primary" data-toggle="modal" data-target="#contract_logs">Просмотреть лог
+                действий
+            </button>
+            <div class="modal fade" id="contract_logs" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Лог действий</h5>
+                            <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {% if logs %}
+                                {% for log in logs %}
+                                    <p>{{ log.created_at }} | {{ log.message | safe }}</p>
+                                {% endfor %}
+                            {% else %}
+                                <p>Логов для этого контракта нет</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+{% endblock %}

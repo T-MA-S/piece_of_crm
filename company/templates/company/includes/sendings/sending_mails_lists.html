@@ -1,0 +1,356 @@
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'main/js/home.js' %}"></script>
+<script src="{% static 'main/js/company.js' %}"></script>
+<script src="{% static 'main/js/demo/chart-bar-demo.js' %}"></script>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% else %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% if not telegram_bots_exists %}
+    <div class="alert alert-warning" role="alert">
+        {% trans 'To create a Telegram submission, you must add a valid Telegram Bot.' %}
+        <a href="{% url 'tg_bots' %}">Click</a>
+    </div>
+{% endif %}
+
+{% if user_have_valid_using_smtp %}
+<!-- Page Heading -->
+{% if not sending_mails_lists %}
+    <div class="alert alert-info" role="alert">{% trans 'Sadly, you have not created any mailing list yet. In order to make one, press' %}
+        <a class="btn btn-primary btn-user btn-bloc" ,="">
+            <i class="fas fa-list"></i>
+            <i class="fas fa-plus"></i>
+        </a>
+        {% trans "and specify it's name" %}
+    </div>
+{% endif %}
+
+<div class="row">
+    <!-- DataTales Example -->
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="mb-2 p-3 text-gray-800">{% trans 'Mailing list' %}</h3>
+                <button type="button" class="btn btn-primary btn-user btn-bloc" data-toggle="modal" data-target="#addUserListModalCenter">
+                    <i class="fas fa-list"></i>
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="modal fade" id="addUserListModalCenter" tabindex="-1" role="dialog" aria-labelledby="addUserListModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="addUserListModalCenterTitle">{% trans 'Add Mailing list' %}</h5>
+                        <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        </div>
+                        <div class="modal-body" id="create_sending_form_body">
+                        <form class="user" method="post" id="create_sending_form" data-url="{% url 'sending_mails' %}">
+                            {% csrf_token %}
+
+                            <label for="id_add_list_form_list_name">{% trans 'List name' %}: </label>
+                            <input type="text" id="id_add_list_form_list_name" name="list_name" class="form-control" required>
+
+                            <label for="id_add_list_form_templates">{{ add_list_form.fields.templates.label }}: </label>
+                            <select id="id_add_list_form_templates" name="add_list_form_templates" class="form-control" style="width: 100%">
+                                {% for x, y in add_list_form.fields.templates.choices %}
+                                    <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <label for="id_add_list_form_users_lists">{{ add_list_form.fields.users_lists.label }}: </label>
+                            <select id="id_add_list_form_users_lists" name="add_list_form_users_lists" class="form-control" style="width: 100%">
+                                {% for x, y in add_list_form.fields.users_lists.choices %}
+                                    <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <div class="modal-footer">
+                                <input type="submit" class="btn btn-primary" value="{% trans 'Add list' %}" id="submit_mailing_list_btn" \>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="list-group list-group-flush" id="clientsList" role="tablist">
+                    {% if sending_mails_lists %}
+                        {% for sending_mails_list in sending_mails_lists %}
+                            <a class="list-group-item client-list list-group-item-action d-flex justify-content-between {% if selected_list_id and selected_list_id == sending_mails_list.pk %}active{% endif %}" id="list-home-list{{ sending_mails_list.pk }}" href="#list{{ sending_mails_list.id }}" data-toggle="list" role="tab">
+                                <div class="list p-2">
+                                    {{ sending_mails_list.list_name }}
+                                </div>
+                                <button type="button" class="btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dropdown-menu dropdown-menu-right zindex-dropdown">
+                                    <button class="dropdown-item" type="button" data-toggle="modal" data-target="#sendingmails_list_rename{{ sending_mails_list.pk }}">{% trans 'Rename list' %}</button>
+                                    <button class="dropdown-item" type="button" data-toggle="modal" data-target="#delete_sendings_list{{ sending_mails_list.pk }}">{% trans 'Delete list' %}</button>
+                                </div>
+                            </a>
+
+                            <div class="modal fade" id="sendingmails_list_rename{{ sending_mails_list.pk }}" tabindex="-1" role="dialog" aria-labelledby="sendingmails_list_renameTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                    <h5 class="modal-title" id="sendingmails_list_renameTitle">{% trans 'Add Mailing list' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    </div>
+                                    <div class="modal-body">
+                                    <form class="user" method="post" id="sendingmails_list_rename_form{{ sending_mails_list.pk }}" data-url="{% url 'sending_mails' sending_mails_list.pk %}" data-list_id="{{ sending_mails_list.pk }}">
+                                        {% csrf_token %}
+            
+                                        <label for="name_list">{% trans 'List name' %}: </label>
+                                        <input type="text" id="name_list{{ sending_mails_list.pk }}" name="name_list{{ sending_mails_list.pk }}" value="{{ sending_mails_list.list_name }}" class="form-control" required>
+
+                                        <div class="modal-footer">
+                                            <input type="submit" class="btn btn-primary" value="{% trans 'Rename list' %}" id="submit_mailing_list_btn" \>
+                                        </div>
+                                    </form>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="delete_sendings_list{{ sending_mails_list.pk }}"
+                                    tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                                    aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the list?' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Delete" below if you`re ready to delete the listing.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-danger" id="delete_sendings_list" data-url="{% url 'sending_mails' %}" data-list_id="{{ sending_mails_list.pk }}">{% trans 'Delete' %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="pt-3"> {% trans 'You have no templates' %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-2">
+        <div class="card shadow mb-4">
+            <div class="tab-content">
+                {% for list_id, data in list_ids.items %}
+                {% with paginator=data.0 pending_count=data.1 delivered_count=data.2 error_count=data.3 opened_count=data.4 sent_count=data.5 all_count=data.6 cancelled_count=data.7 tg_alert=data.8 %}
+
+                    <div class="tab-pane {% if selected_list_id and selected_list_id == list_id %}active{% endif %}" role="tabpanel" aria-labelledby="list-home-list{{ list_id }}" id="list{{ list_id }}">
+                        <div class="card-body">
+
+                            <h3 class="h5 mb-2 p-3 text-gray-800">{% trans 'Your Mailing' %}</h3>
+
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">{% trans 'Analytics' %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-bar">
+                                        <canvas id="myBarChart {{ list_id }}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <script>create_chart('{{ list_id }}', '{{ pending_count }}', '{{ delivered_count }}', '{{ error_count }}', '{{ opened_count }}', '{{ sent_count }}', '{{ all_count }}', '{{ cancelled_count }}')</script>
+                            <button id="refresh_bar_chart{{ list_id }}" onclick="create_chart('{{ list_id }}', '{{ pending_count }}', '{{ delivered_count }}', '{{ error_count }}', '{{ opened_count }}', '{{ sent_count }}', '{{ all_count }}', '{{ cancelled_count }}')" hidden></button>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <br>
+                                    <button class="btn btn-success" data-toggle="modal" data-target="#sendingmails_start_modal{{ list_id }}"><i class="fas fa-play" title="{% trans 'Start sending' %}"></i></button>
+                                    <button class="btn btn-warning" data-toggle="modal" data-target="#sendingmails_stop_modal{{ list_id }}"><i class="fas fa-pause" title="{% trans 'Stop sending' %}"></i></button>
+                                    <button class="btn btn-primary" id="sending_refresh_button{{ list_id }}" data-url="{% url 'sending_mails' list_id 'refresh' %}" data-page="{{ paginator.this_page }}"><i class="fas fa-sync-alt"></i></button>
+                                </div>
+                                <div class="col-6">
+                                    <label for="sending-actions-{{ list_id }}">{% trans 'Action' %}:</label>
+                                    <div class="input-group">
+                                        <select class="form-control" name="sending-actions-{{ list_id }}"
+                                                id="sending-actions-{{ list_id }}" data-list_id="{{ list_id }}">
+                                            <option id="empty-{{ list_id }}" value>---------</option>
+                                            <option id="break-{{ list_id }}" value="break">{% trans 'Break selected sendings' %}</option>
+                                            <option id="del-{{ list_id }}"
+                                                    value="del">{% trans 'Delete selected sendings' %}</option>
+                                        </select>
+                                        <button class="btn btn-secondary" id="sending-actions_submit-{{ list_id }}"
+                                                data-list_id="{{ list_id }}"
+                                                data-update_url="{% url 'sending_mails_actions' %}"
+                                                data-page="{{ paginator.this_page }}"
+                                                data-bulk_del="" data-bulk_break="">{% trans 'Submit' %}</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="bulk_break_sending{{ list_id }}" tabindex="-1"
+                                    role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to break the selected sendings?' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Break" below if you are ready to break sendings.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-warning"
+                                                    id="bulk_sending_break_button{{ list_id }}"
+                                                    data-list_id="{{ list_id }}">{% trans 'Break' %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="bulk_delete_sending{{ list_id }}" tabindex="-1"
+                                    role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to delete the selected sendings?' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Delete" below if you are ready to delete sendings.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-danger"
+                                                    id="bulk_sending_delete_button{{ list_id }}"
+                                                    data-list_id="{{ list_id }}">{% trans 'Delete' %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="sendingmails_start_modal{{ list_id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="sendingmails_start_modal_title{{ list_id }}">{% trans 'Start sending' %}</h5>
+                                            <button type="button" class="close close-btn" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="user" method="post" id="sendingmails_start_form{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'sendingmails_start' list_id %}">
+                                                {% csrf_token %}
+            
+                                                <label>{% trans 'Sending time' %}: </label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="sending_time_radio{{ list_id }}" id="start_now_radio{{ list_id }}" value="now" checked>
+                                                    <label class="form-check-label" for="start_now">
+                                                        {% trans 'Start now' %}
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="sending_time_radio{{ list_id }}" id="start_later_radio{{ list_id }}" value="later">
+                                                    <label class="form-check-label" for="start_later">
+                                                        {% trans 'Custom date' %}
+                                                    </label>
+                                                </div>
+
+                                                <div class="sending_time_block d-none">
+                                                    <label for="sending_time_input">{% trans 'Enter the time at which the mailing will start' %}:</label>
+                                                    <input class="form-control sending_time_input" type="datetime-local" name="sending_time_input{{ list_id }}" id="sending_time_input{{ list_id }}">
+                                                </div>
+
+                                                <div class="modal-footer">
+                                                    <input type="submit" class="btn btn-primary" value="{% trans 'Submit' %}">
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="sendingmails_stop_modal{{ list_id }}" tabindex="-1"
+                                    role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"
+                                                id="exampleModalLabel">{% trans 'Are you sure you want to break the sendings?' %}</h5>
+                                            <button type="button" class="close close-btn"
+                                                    data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">{% trans 'Select "Break" below if you are ready to break sendings.' %}</div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" type="button"
+                                                    data-dismiss="modal">{% trans 'Cancel' %}</button>
+                                            <button class="btn btn-warning" id="sendingmails_stop_button{{ list_id }}" data-list_id="{{ list_id }}" data-url="{% url 'sendingmails_stop' list_id %}">{% trans 'Break' %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if tg_alert %}
+                                <div class="alert alert-warning mt-4">
+                                    <strong>{% trans 'Attention!' %}</strong> {% trans 'Newsletter in Telegram will be sent to those contacts who have a' %} <strong>Telegram ID</strong>
+                                </div>
+                            {% endif %}
+
+
+                            <div class="row m-4">
+                                {% get_sending_statuses as sending_statuses %}
+                                {% for x, y in sending_statuses %}
+                                    <div class="col-4">
+                                        <input id="sending-statuses-{{ list_id }}-{{ x }}" name="sending-statuses{{ x }}" type="checkbox" data-id="{{ forloop.counter0 }}" data-list_id="{{ list_id }}" data-page="{{ paginator.this_page }}" data-url="{% url 'sending_mails' list_id 'table' %}">
+                                        <label for="sending-statuses{{ x }}">{{ y }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="table-responsive" id="sendings-table{{ list_id }}">
+                                {% include 'company/includes/sendings/sending_mails_table.html' with paginator=paginator list_id=list_id %}
+                            </div>
+                        </div>
+                    </div>
+                {% endwith %}
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+    {% trans 'To create sending emails you have to add valid SMTP profile' %}
+    <a href="{% url "email_accounts" %}">Click</a>
+</div>
+
+
+
+{% endif %}

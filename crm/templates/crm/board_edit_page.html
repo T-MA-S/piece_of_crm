@@ -1,0 +1,225 @@
+{% extends 'dashboard/base.html' %}
+{% load tags %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+    <script src="{% static 'main/js/dashboard.js' %}"></script>
+    <script src="{% static 'main/js/board.js' %}"></script>
+    <div class="account">
+
+        <div class="container-fluid bg-white">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger" role="alert">{{ message }}</div>
+                    {% else %}
+                        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div class="email_list">
+                <div class="EmailListTitle">
+                    <h1>{% trans 'Board' %}: {{ board.name }}
+                        {% if request.user ==  board.get_owner %}
+                            <button class="btn btn-primary" data-toggle="modal"
+                                    data-target="#edit_name">
+
+                                <i class="fas fa-edit"
+                                   aria-hidden="true"></i>
+                            </button>
+                            <button class="btn btn-danger" data-toggle="modal"
+                                    data-target="#delete_board">
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
+                        {% endif %}
+                    </h1>
+                </div>
+                {% if request.user ==  board.get_owner %}
+                    <div class="modal fade" id="edit_name" tabindex="-1" role="dialog"
+                         aria-labelledby="edit_nameModalCenterTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="edit_nameModalCenterTitle">{% trans 'Change board name' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal"
+                                            aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="user" method="post">
+                                        {% csrf_token %}
+                                        {#                                        TODO: Форма смены имены борды #}
+                                        {{ edit_board_name }}
+
+                                        <div class="modal-footer">
+                                            <input type="submit" class="btn btn-primary"
+                                                   value="{% trans 'Submit' %}">
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="delete_board" tabindex="-1" role="dialog"
+                         aria-labelledby="delete_boardModalCenterTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="edit_nameModalCenterTitle">{% trans 'Are you sure you want to delete board? This action triggers deletion board contracts and permissions' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal"
+                                            aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <button class="btn btn-warning">{% trans "Cancel" %}</button>
+                                    <button class="btn btn-danger" onclick="delete_board('{{ board.id }}')">{% trans "Confirm" %}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                {% endif %}
+                {% if can_invite_members %}
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                {% for form_item in invite_to_board_form %}
+                                    <div class="col-sm">
+                                        {{ form_item.errors }}
+                                        {{ form_item.label_tag }}
+                                        {{ form_item }}
+                                    </div>
+                                {% endfor %}
+                                <div class="col-sm">
+                                    <label for="submit"><br></label>
+                                    <input type="submit" id="submit" class="btn btn-primary btn-user btn-block"
+                                           value="{% trans 'Invite a new member!' %}">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+                {% if board_invites %}
+                    <div class="invites email_list" style="margin-left:0px;">
+                        <div class="card shadow">
+                            <div class="card-body">
+                                <h1>{% trans 'Invites your team have sent' %}</h1>
+                                <div class="table-responsive overflow-hidden pl-2">
+
+                                    <table class="table table-bordered" width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr>
+                                            <th>{% trans 'Name' %}</th>
+                                            <th>{% trans 'Email' %}</th>
+                                            <th>{% trans 'Status' %}</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for invite in board_invites %}
+                                            <tr>
+                                                <td>{{ invite.user.name }}</td>
+                                                <td>{{ invite.user.email }}</td>
+                                                <td>{{ invite.status }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>{% trans 'Name' %}</th>
+                                <th>{% trans 'Account' %}</th>
+                                <th>{% trans 'Status' %}</th>
+                                {% if can_delete_from_board %}
+                                    <th>{% trans 'Remove from board' %}</th>
+                                {% endif %}
+                                <th></th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for permission in board_permissions %}
+                                <tr>
+                                    <td>{{ permission.user.name }}</td>
+                                    <td>{{ permission.user.email }}</td>
+                                    <td>{{ permission.role }}</td>
+                                    <td>
+                                        {% can_remove_board_member current_user_permissions permission as can_remove_member %}
+                                        {% if can_remove_member %}
+                                            <button class="btn btn-danger"
+                                                    onclick="remove_from_board('{{ permission.id }}')">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        {% endif %}
+                                        {% if can_edit_role %}
+                                            <button class="btn btn-warning" data-toggle="modal"
+                                                    data-target="#changeRole{{ permission.id }}">
+                                                <i class="fas fa-edit"
+                                                   aria-hidden="true"></i>
+                                            </button>
+                                        {% endif %}
+
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+            {% if can_edit_role %}
+                {% for permission, form in permissions_to_roles.items %}
+                    <div class="modal fade" id="changeRole{{ permission.id }}" tabindex="-1" role="dialog"
+                         aria-labelledby="changeRoleModalCenterTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        id="changeRoleModalCenterTitle">{% trans 'Change role' %}</h5>
+                                    <button type="button" class="close close-btn" data-dismiss="modal"
+                                            aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="user" method="post">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+
+                                        <div class="modal-footer">
+                                            <input type="submit" class="btn btn-primary"
+                                                   value="{% trans 'Submit' %}">
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+

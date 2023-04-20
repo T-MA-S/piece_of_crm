@@ -1,0 +1,62 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load template_utils %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'main/js/home.js' %}"></script>
+    <script src="{% static 'main/js/company.js' %}"></script>
+
+
+    <div class="container-fluid" id="contacts-lists">
+        {% include 'company/includes/contacts/contacts_lists.html' with messages=messages lists=lists list_id_to_contacts=list_id_to_contacts transfer_contact_form=transfer_contact_form %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Failed to generate any email.' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="delete_contact_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Contact successfully deleted' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="contact_success_created">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Contact created successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="contact_success_edited">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Contact created successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="contact_success_transfered">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Contact transferred to another list successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="contact_edit">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Change at least one field' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="search_contacts_success">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'The search was completed successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_contacts_select_action">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Choose an action first' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-warning" id="bulk_contacts_select_contact">
+        <strong>{% trans 'Warning!' %}</strong> {% trans 'Select at least one contact' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="bulk_contacts_del_alert">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Selected contacts deleted successfully' %}
+    </div>
+
+    <div class="myAlert-bottom alert alert-success" id="bulk_contacts_trans_alert">
+        <strong>{% trans 'Success!' %}</strong> {% trans 'Selected contacts have been successfully transferred to another list' %}
+    </div>
+
+{% endblock %}
